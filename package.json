@@ -1,0 +1,14 @@
+{
+  "name": "fraudfishing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:init":  "mysql -u appuser -papppass fraudfishing < database/schema.sql",
+    "db:seed":  "mysql -u appuser -papppass fraudfishing < database/seed.sql"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
