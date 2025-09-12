@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbModule } from './db/db.module';
 import { UserModule } from './users/user.module';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AdminModule } from './admin/admin.module'; // Importa AdminModule
@@ -14,7 +15,9 @@ import { AdminModule } from './admin/admin.module'; // Importa AdminModule
       global: true,
       secret:"supersecret"
   }), 
-  DbModule, UserModule, AuthModule, AdminModule], // Añade AdminModule aquí
+
+  DbModule, UserModule, AuthModule, AdminModule],
+  
   controllers: [AppController],
   providers: [AppService],
 })

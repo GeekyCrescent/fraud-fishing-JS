@@ -1,13 +1,25 @@
-import { Controller, Get } from '@nestjs/common';
-import { AdminService } from '../admin/admin.service';
-import { UserDto } from '../users/user.service';
+import { Body, Controller, Post, Put, Get, Param } from "@nestjs/common";
+import { UserDto, UserService } from "../users/user.service";
+import { ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-@Controller('admin/user')
-export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+@ApiTags("Endpoints de Administradores")
+@Controller("admin")
+export class AdminController{
+    constructor(private readonly userService: UserService) {}
 
-  @Get('list')
-  async listAllUsers(): Promise<UserDto[]> {
-    return this.adminService.findAllUsers();
-  }
+    @Get("user/list")
+    @ApiResponse({status: 200, description: "Lista de usuarios"})
+    @ApiResponse({status: 500, description: "Error interno del servidor"})
+    async getUsersList(): Promise<UserDto[]> {
+        return this.userService.getUsers();
+    }
+
+    @Get("user/:id")
+    @ApiResponse({status: 200, description: "Usuario por id encontrado"})
+    @ApiResponse({status: 500, description: "Error interno del servidor"})
+    async getUserById(@Param("id") id: number): Promise<UserDto|void> {
+        const user = await this.userService.findById(id);
+        if (!user) return;
+        return { email: user.email, name: user.name };
+    }
 }

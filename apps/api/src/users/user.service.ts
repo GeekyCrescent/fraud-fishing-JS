@@ -32,4 +32,20 @@ export class UserService {
         return this.userRepository.findById(id);
     }
 
+    async updateUser(email:string, name:string, password:string):Promise<UserDto|void>{ 
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            throw new Error("Usuario no encontrado");
+        }
+        const hashedPassword = sha256(password);
+        user.name = name;
+        user.password_hash = hashedPassword;
+        await this.userRepository.updateUser(user);
+    return { email: user.email, name: user.name };
+    }
+
+    async getUsers():Promise<UserDto[]>{
+        const users = await this.userRepository.findAll();
+        return users.map(user => ({ email: user.email, name: user.name }));
+    }
 }
