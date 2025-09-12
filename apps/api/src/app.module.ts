@@ -8,7 +8,6 @@ import { UserModule } from './users/user.module';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
-import { AdminModule } from './admin/admin.module'; // Importa AdminModule
 
 @Module({
   imports: [JwtModule.register({
