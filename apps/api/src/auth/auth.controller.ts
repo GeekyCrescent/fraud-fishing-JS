@@ -1,8 +1,9 @@
-import { UserService } from "../users/user.service";
+import { UserService } from "src/users/user.service";
 import { TokenService } from "./tokens.service";
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "src/common/interfaces/authenticated-request";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController{
@@ -23,6 +24,7 @@ export class AuthController{
 
     @Get("profile")
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     getProfile(@Req() req: AuthenticatedRequest){
         return {profile: req.user.profile}
     }
