@@ -15,8 +15,8 @@ INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 -- La contraseña es 'admin123'. Asegúrate de usar un hash real en un entorno productivo.
 -- Por simplicidad, aquí la guardamos en texto plano (NO HACER EN PRODUCCIÓN).
 -- ---------------------------------
-INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
-(1, 'Admin User', 'admin@example.com', '$2b$10$abcdefghijklmnopqrstuv', 'admin'); -- Cambia el hash por uno real generado por tu app
+INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password_hash`, `salt`, `role`) VALUES
+(1, 'Admin User', 'admin@example.com', '$2b$10$abcdefghijklmnopqrstuv', 'salt', 'admin'); -- Cambia el hash por uno real generado por tu app
 
 -- ---------------------------------
 -- Semilla de Reportes de Ejemplo

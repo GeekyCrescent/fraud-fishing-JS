@@ -3,15 +3,17 @@ USE fraudfishing;
 -- ---------------------------------
 -- Tabla de Usuarios (users)
 -- ---------------------------------
+-- VERSIÓN NUEVA
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
-  `password` VARCHAR(255) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `salt` VARCHAR(255) NOT NULL,
   `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+);
 
 -- ---------------------------------
 -- Tabla de Categorías (categories)
