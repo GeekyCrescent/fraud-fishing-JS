@@ -7,13 +7,14 @@ import { DbModule } from './db/db.module';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { AdminModule } from './admin/admin.module'; // Importa AdminModule
 
 @Module({
   imports: [JwtModule.register({
       global: true,
       secret:"supersecret"
   }), 
-  DbModule, UserModule, AuthModule],
+  DbModule, UserModule, AuthModule, AdminModule], // Añade AdminModule aquí
   controllers: [AppController],
   providers: [AppService],
 })

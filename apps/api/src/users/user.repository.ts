@@ -34,4 +34,10 @@ export class UserRepository{
         const result= rows as User[];
         return result[0];
     }
+    async findAll():Promise<User[]>{
+        const sql= `SELECT * FROM users`;
+        const [rows]= await this.dbService.getPool().query(sql);
+        const result= rows as User[];
+        return result;
+    }
 }
