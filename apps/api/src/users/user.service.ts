@@ -32,8 +32,8 @@ export class UserService {
         return this.userRepository.findById(id);
     }
 
-    async updateUser(email:string, name:string, password:string):Promise<UserDto|void>{ 
-        const user = await this.userRepository.findByEmail(email);
+    async updateUserById(id: number, name: string, password: string): Promise<UserDto | void> {
+        const user = await this.userRepository.findById(id);
         if (!user) {
             throw new Error("Usuario no encontrado");
         }
@@ -41,7 +41,7 @@ export class UserService {
         user.name = name;
         user.password_hash = hashedPassword;
         await this.userRepository.updateUser(user);
-    return { email: user.email, name: user.name };
+        return { email: user.email, name: user.name };
     }
 
     async getUsers():Promise<UserDto[]>{

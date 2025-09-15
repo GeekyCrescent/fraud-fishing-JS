@@ -6,7 +6,7 @@ import { UserRepository } from "../users/user.repository";
 
 @Module({
   controllers: [AdminController],
-  providers: [AdminService, UserRepository], // Añadir AdminService a los providers
-  exports: [] // Eliminar UserService de exports, ya que no se exporta desde aquí
+  providers: [AdminService, UserRepository], 
+  exports: [] 
 })
 export class AdminModule {}

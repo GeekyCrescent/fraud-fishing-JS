@@ -18,4 +18,15 @@ export class AdminService {
         }
         return { email: user.email, name: user.name };
     }
+
+    async updateUserById(id: number, name: string, password: string): Promise<UserDto | void> {
+        const user = await this.userRepository.findById(id);
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+        user.name = name;
+        user.password_hash = password;
+        await this.userRepository.updateUser(user);
+        return { email: user.email, name: user.name };
+    }
 }

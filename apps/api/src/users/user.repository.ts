@@ -36,7 +36,7 @@ export class UserRepository{
     }
 
     async updateUser(user: User): Promise<void> {
-        const sql = `UPDATE users SET name='${user.name}', password_hash='${user.password_hash}' WHERE email='${user.email}'`;
+        const sql = `UPDATE users SET name='${user.name}', password_hash='${user.password_hash}' WHERE id=${user.id}`;
         await this.dbService.getPool().query(sql);
     }
 
