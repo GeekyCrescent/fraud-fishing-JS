@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../users/user.repository';
 import { UserDto } from '../users/user.service';
+import { sha256 } from 'src/util/crypto/hash.util';
 
 @Injectable()
 export class AdminService {
@@ -25,7 +26,8 @@ export class AdminService {
             throw new Error('Usuario no encontrado');
         }
         user.name = name;
-        user.password_hash = password;
+        const hashedPassword = sha256(password);
+        user.password_hash = hashedPassword;
         await this.userRepository.updateUser(user);
         return { email: user.email, name: user.name };
     }

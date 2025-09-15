@@ -2,13 +2,7 @@ import { Body, Controller, Post, Put, Get, Param } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { UserDto } from "../users/user.service";
 import { ApiBody, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
-
-export class UpdateUserDto{
-    @ApiProperty({example:"Usuario Ejemplo", description:"Nombre nuevo del usuario", required:false})
-    name: string;
-    @ApiProperty({example:"password123", description:"Contraseña nueva del usuario"})
-    password: string;
-}
+import { UpdateUserDto } from "../users/user.controller";
 
 @ApiTags("Endpoints de Administrador")
 @Controller("admin/user")
