@@ -29,9 +29,9 @@ export default function Login({ setUser }: LoginProps) {
         <div className="w-full max-w-sm text-center">
           {/* Logo */}
           <img
-            src="/logo.png" // 👈 asegúrate de que exista en public/logo.png
+            src="/logo.png"
             alt="Fraud Fishing"
-            className="mx-auto mb-6 w-32"
+            className="mx-auto mb-10 w-64"
           />
 
           <h2 className="text-2xl font-bold text-[#00204D] mb-4">
