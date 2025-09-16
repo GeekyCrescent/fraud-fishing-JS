@@ -9,6 +9,7 @@ async function bootstrap() {
   .setTitle("API de Gestión de Usuarios")
   .setDescription("API para gestionar usuarios con autenticación JWT")
   .setVersion("1.0")
+  .addBearerAuth() // Añadir esta línea para habilitar la autenticación Bearer en Swagger UI
   .build();
   const doc = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, doc);
