@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../users/user.repository';
 import { UserDto } from '../users/user.service';
+import { ReportRepository } from '../reports/report.repository';
+import { ReportDto } from '../reports/report.service';
 import { sha256 } from 'src/util/crypto/hash.util';
 
 @Injectable()
 export class AdminService {
-    constructor(private readonly userRepository: UserRepository) {}
+    constructor(private readonly userRepository: UserRepository, private readonly reportRepository: ReportRepository) {}
+
+    // Endpoints para Usuarios (Users)
 
     async findAllUsers(): Promise<UserDto[]> {
         const users = await this.userRepository.findAll();
@@ -30,5 +34,15 @@ export class AdminService {
         user.password_hash = hashedPassword;
         await this.userRepository.updateUser(user);
         return { email: user.email, name: user.name };
+    }
+
+    // Endpoints para Reportes (Reports)
+
+    async findAllReports(): Promise<ReportDto[]> {
+        return this.reportRepository.findAllReports();
+    }
+
+    async updateReportById(id: number, status: string): Promise<ReportDto | void> {
+        return this.reportRepository.updateReportStatus(id, status);
     }
 }
