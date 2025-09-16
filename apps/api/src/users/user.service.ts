@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { User, UserRepository } from "./user.repository";
 import { sha256 } from "../util/crypto/hash.util";

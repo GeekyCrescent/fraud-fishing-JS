@@ -1,8 +1,8 @@
 import { Body, Controller, Post, Put, Req, UseGuards, NotFoundException } from "@nestjs/common";
 import { UserDto, UserService } from "./user.service";
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody } from "@nestjs/swagger";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard"; // Ajusta la ruta si es necesario
-import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request"; // Ajusta la ruta si es necesario
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request"; 
 
 export class CreateUserDto{
     @ApiProperty({example:"user@example.com", description:"Email del usuario"})
