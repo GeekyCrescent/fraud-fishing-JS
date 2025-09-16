@@ -3,9 +3,12 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { User, UserRepository } from "./user.repository";
 import { sha256 } from "../util/crypto/hash.util";
+import { ApiProperty } from "@nestjs/swagger";
 
-export type UserDto={
+export class UserDto {
+    @ApiProperty({ example: "user@example.com", description: "Email del usuario" })
     email: string;
+    @ApiProperty({ example: "Nombre de Usuario", description: "Nombre del usuario" })
     name: string;
 }
 
