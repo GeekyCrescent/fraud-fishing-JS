@@ -3,16 +3,29 @@ import { TokenService } from "./tokens.service";
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "src/common/interfaces/authenticated-request";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiProperty, ApiBody } from "@nestjs/swagger";
+
+
+export class LoginDto {
+  @ApiProperty({ example: "user@email.com" })
+  email: string;
+  @ApiProperty({ example: "password123" })
+  password: string;
+}
+
+export class RefreshDto {
+  @ApiProperty({ example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." })
+  refreshToken: string;
+}
 
 @Controller("auth")
 export class AuthController{
     constructor(private readonly tokenService: TokenService,
-        private readonly userService: UserService
-    ){}
-    
+        private readonly userService: UserService){}
+
     @Post("login")
-    async login(@Body() dto:{email:string, password:string}){
+    @ApiBody({ type: LoginDto })
+    async login(@Body() dto: LoginDto){
         const usuario= await this.userService.login(dto.email, dto.password);
         if(!usuario)
             throw Error("Usuario no encontrado");
@@ -30,7 +43,8 @@ export class AuthController{
     }
 
     @Post("refresh")
-    async refresh(@Body() dto: {refreshToken: string}){
+    @ApiBody({ type: RefreshDto })
+    async refresh(@Body() dto: RefreshDto) {
         try{
             const profile= await this.tokenService.verifyRefresh(dto.refreshToken);
             const user= await this.userService.findById(Number(profile.sub));

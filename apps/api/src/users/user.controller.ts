@@ -1,6 +1,8 @@
-import { Body, Controller, Post, Put } from "@nestjs/common";
+import { Body, Controller, Post, Put, Req, UseGuards, NotFoundException } from "@nestjs/common";
 import { UserDto, UserService } from "./user.service";
-import { ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation } from "@nestjs/swagger"; // Importar ApiOperation
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request"; 
 
 export class CreateUserDto{
     @ApiProperty({example:"user@example.com", description:"Email del usuario"})
@@ -11,23 +13,39 @@ export class CreateUserDto{
     password: string;
 }
 
+export class UpdateUserDto {
+    @ApiProperty({ example: "Nuevo Nombre", description: "Nombre del usuario", required: false })
+    name: string;
+    @ApiProperty({ example: "nuevaPassword123", description: "Nueva contraseña del usuario" })
+    password: string;
+}
+
 @ApiTags("Endpoints de Usuarios")
 @Controller("users")
 export class UserController{
     constructor(private readonly userService: UserService) {}
 
     @Post()
-    @ApiResponse({status: 201, description: "Usuario creado exitosamente"})
+    @ApiOperation({ summary: 'Registrar un nuevo usuario' }) // Descripción de la operación
+    @ApiBody({ type: CreateUserDto })
+    @ApiResponse({status: 201, description: "Usuario creado exitosamente", type: UserDto}) // Especificar el tipo de retorno
     @ApiResponse({status: 500, description: "Error interno del servidor"})
     async registerUser(@Body() userDto: CreateUserDto): Promise<UserDto|void> {
         return this.userService.registerUser(userDto.email, userDto.name, userDto.password);
     }
 
-    @Put()
-    @ApiResponse({status: 200, description: "Usuario actualizado exitosamente"})
+    @Put("me")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: 'Actualizar la información del usuario autenticado' }) // Descripción de la operación
+    @ApiBearerAuth()
+    @ApiBody({ type: UpdateUserDto })
+    @ApiResponse({status: 200, description: "Usuario actualizado exitosamente", type: UserDto}) // Especificar el tipo de retorno
+    @ApiResponse({status: 404, description: "Usuario no encontrado"})
     @ApiResponse({status: 500, description: "Error interno del servidor"})
-    async updateUser(@Body() userDto: CreateUserDto): Promise<UserDto|void> {
-        return this.userService.updateUser(userDto.email, userDto.name, userDto.password);
+    async updateOwnUser( @Req() req: AuthenticatedRequest, @Body() userDto: UpdateUserDto): Promise<UserDto|void> {
+        const userId = req.user.profile?.id || req.user.profile.id; 
+        const updated = await this.userService.updateUserById(Number(userId), userDto.name, userDto.password);
+        if (!updated) throw new NotFoundException("Usuario no encontrado");
+        return updated;
     }
-
 }
