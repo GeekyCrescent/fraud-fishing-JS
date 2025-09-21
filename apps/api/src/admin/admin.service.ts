@@ -9,6 +9,16 @@ import { sha256 } from 'src/util/crypto/hash.util';
 export class AdminService {
     constructor(private readonly userRepository: UserRepository, private readonly reportRepository: ReportRepository) {}
 
+    // Endpoints para Admins (Admins)
+    async registerAdmin(email: string, name: string, password: string): Promise<UserDto | void> {
+        const existingAdmin = await this.userRepository.findByEmail(email);
+        if (existingAdmin) {
+            throw new Error('El correo electrónico ya está en uso');
+        }
+        const hashedPassword = sha256(password);
+        return this.userRepository.registerUser(email, name, hashedPassword, 'admin');
+    }
+
     // Endpoints para Usuarios (Users)
 
     async findAllUsers(): Promise<UserDto[]> {
@@ -38,11 +48,11 @@ export class AdminService {
 
     // Endpoints para Reportes (Reports)
 
-    async findAllReports(): Promise<ReportDto[]> {
-        return this.reportRepository.findAllReports();
-    }
+    // async findAllReports(): Promise<ReportDto[]> {
+    //     return this.reportRepository.findAllReports();
+    // }
 
-    async updateReportById(id: number, status: string): Promise<ReportDto | void> {
-        return this.reportRepository.updateReportStatus(id, status);
-    }
+    // async updateReportById(id: number, status: string): Promise<ReportDto | void> {
+    //     return this.reportRepository.updateReportStatus(id, status);
+    // }
 }

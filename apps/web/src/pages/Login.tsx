@@ -11,14 +11,36 @@ export default function Login({ setUser }: LoginProps) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
-    if (correo === "admin@demo.com" && contrasena === "1234") {
+    try {
+      const response = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: correo, password: contrasena }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || "Credenciales incorrectas");
+        return;
+      }
+
+      const data = await response.json();
+
+      // Solo permitir admins
+      if (data.role !== "admin") {
+        setError("Solo los administradores pueden ingresar.");
+        return;
+      }
+
       setUser({ correo });
-      navigate("/dashboard");
-    } else {
-      setError("Credenciales incorrectas");
+      localStorage.setItem("accessToken", data.accessToken);
+      navigate("dashboard");
+    } catch (err) {
+      setError("Error de conexión");
     }
   };
 

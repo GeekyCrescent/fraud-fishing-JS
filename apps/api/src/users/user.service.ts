@@ -17,7 +17,7 @@ export class UserService {
     async registerUser(email:string, name:string, password:string):Promise<UserDto|void>{
         console.log("Aqui hacemos el hash del password")
         const hashedPassword = sha256(password);
-        return this.userRepository.registerUser(email, name, hashedPassword);
+        return this.userRepository.registerUser(email, name, hashedPassword, "user");
     }
 
     async login(email:string, password:string):Promise<User>{

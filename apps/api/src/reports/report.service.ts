@@ -20,5 +20,9 @@ export class ReportService {
     async findAllReports(): Promise<ReportDto[]> {
         return this.reportRepository.findAllReports();
     }
+
+    async updateReportById(id: number, status: string): Promise<ReportDto | void> {
+        return this.reportRepository.updateReportStatus(id, status);
+    }
 }
 

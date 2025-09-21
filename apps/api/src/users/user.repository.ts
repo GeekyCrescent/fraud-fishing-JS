@@ -7,6 +7,7 @@ export type User= {
     name: string;
     password_hash: string;
     salt: string;
+    role: string; 
 }
 
 
@@ -15,8 +16,8 @@ export class UserRepository{
     constructor(private readonly dbService: DbService) {}
 
     async registerUser(email:string, 
-        name:string, password:string):Promise<User|void>{
-        const sql= `INSERT INTO users (email,name,password_hash,salt) VALUES ('${email}','${name}','${password}','saltTest')`;
+        name:string, password:string, role:string):Promise<User|void>{
+        const sql= `INSERT INTO users (email,name,password_hash,salt, role) VALUES ('${email}','${name}','${password}','saltTest', '${role||'user'}')`;
         await this.dbService.getPool().query(sql);
     }
 

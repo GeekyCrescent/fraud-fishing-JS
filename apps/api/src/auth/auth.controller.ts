@@ -29,10 +29,10 @@ export class AuthController{
         const usuario= await this.userService.login(dto.email, dto.password);
         if(!usuario)
             throw Error("Usuario no encontrado");
-        const userProfile = {id: usuario.id.toString(), email: usuario.email, name: usuario.name};
+        const userProfile = {id: usuario.id.toString(), email: usuario.email, name: usuario.name, role: usuario.role};
         const accessToken = await this.tokenService.generateAccess(userProfile);
         const refreshToken= await this.tokenService.generateRefresh(usuario.id.toString());
-        return { accessToken, refreshToken };
+        return { accessToken, refreshToken, role: usuario.role };
     }
 
     @Get("profile")
