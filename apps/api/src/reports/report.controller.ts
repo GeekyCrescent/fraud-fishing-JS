@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards, NotFoundException } from "@nestjs/common";
+import { Body, Controller, Post, Req, UseGuards, NotFoundException, Get, Put, Param } from "@nestjs/common";
 import { ReportDto, ReportService } from "./report.service";
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
@@ -34,5 +34,21 @@ export class ReportController {
     async createReport(@Req() req: AuthenticatedRequest, @Body() createReportDto: CreateReportDto): Promise<ReportDto | void> {
         const userId = Number(req.user.profile.id);
         return this.reportService.createReport(userId, createReportDto.categoryId, createReportDto.title, createReportDto.description, createReportDto.image);
+    }
+
+    @Get()
+    @ApiResponse({ status: 200, description: "Lista de reportes obtenida exitosamente" })
+    @ApiResponse({ status: 500, description: "Error interno del servidor" })
+    async listReports(): Promise<ReportDto[]> {
+        return this.reportService.findAllReports();
+    }
+
+    @Put("status/:id")
+    @ApiBody({ type: UpdateReportStatusDto })
+    @ApiResponse({ status: 200, description: "Reporte actualizado exitosamente" })
+    @ApiResponse({ status: 404, description: "Reporte no encontrado" })
+    @ApiResponse({ status: 500, description: "Error interno del servidor" })
+    async updateReportById(@Param('id') id: string, @Body() reportDto: UpdateReportStatusDto): Promise<ReportDto | void> {
+        return this.reportService.updateReportById(parseInt(id, 10), reportDto.status);
     }
 }

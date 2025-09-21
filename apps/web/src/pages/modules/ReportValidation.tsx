@@ -56,7 +56,7 @@ export default function ReportValidation() {
     setLoading(true);
     setError(null);
 
-    const url = `http://localhost:3000/admin/report/list?status=${tab}`;
+    const url = `http://localhost:3000/reports?status=${tab}`;
 
     fetch(url, { signal: controller.signal })
       .then(async (res) => {
@@ -112,7 +112,7 @@ export default function ReportValidation() {
     );
 
     try {
-      const res = await fetch(`http://localhost:3000/admin/report/status/${id}`, {
+      const res = await fetch(`http://localhost:3000/reports/status/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
