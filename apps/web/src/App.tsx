@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import DashboardHome from "./pages/modules/DashboardHome";
+import ReportValidation from "./pages/modules/ReportValidation";
+import CrudReportes from "./pages/modules/CrudReportes";
+import CrudCategorias from "./pages/modules/CrudCategorias";
+import CrudUsuarios from "./pages/modules/CrudUsuarios";
+import CrudAdmins from "./pages/modules/CrudAdmins";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [user, setUser] = useState<{ correo: string } | null>(null);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<Login setUser={setUser} />} />
+      
+      {/* Dashboard con rutas hijas */}
+      <Route path="/dashboard" element={<Dashboard />}>
+        <Route index element={<DashboardHome />} />
+        <Route path="reportes" element={<ReportValidation />} />
+        <Route path="crud-reportes" element={<CrudReportes />} />
+        <Route path="crud-categorias" element={<CrudCategorias />} />
+        <Route path="crud-usuarios" element={<CrudUsuarios />} />
+        <Route path="crud-admins" element={<CrudAdmins />} />
+      </Route>
+    </Routes>
+  );
 }
-
-export default App

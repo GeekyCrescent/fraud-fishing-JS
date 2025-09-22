@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import { Injectable } from "@nestjs/common";
 import { DbService } from "src/db/db.service";
 
@@ -9,6 +7,7 @@ export type User= {
     name: string;
     password_hash: string;
     salt: string;
+    role: string; 
 }
 
 
@@ -17,8 +16,8 @@ export class UserRepository{
     constructor(private readonly dbService: DbService) {}
 
     async registerUser(email:string, 
-        name:string, password:string):Promise<User|void>{
-        const sql= `INSERT INTO users (email,name,password_hash,salt) VALUES ('${email}','${name}','${password}','saltTest')`;
+        name:string, password:string, role:string):Promise<User|void>{
+        const sql= `INSERT INTO users (email,name,password_hash,salt, role) VALUES ('${email}','${name}','${password}','saltTest', '${role||'user'}')`;
         await this.dbService.getPool().query(sql);
     }
 
@@ -37,7 +36,7 @@ export class UserRepository{
 
 
     async updateUser(user: User): Promise<void> {
-        const sql = `UPDATE users SET name='${user.name}', password_hash='${user.password_hash}' WHERE email='${user.email}'`;
+        const sql = `UPDATE users SET name='${user.name}', password_hash='${user.password_hash}' WHERE id=${user.id}`;
         await this.dbService.getPool().query(sql);
     }
 
