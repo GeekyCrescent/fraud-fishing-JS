@@ -8,6 +8,6 @@ import { AuthModule } from "src/auth/auth.module";
     imports: [AuthModule],
     controllers: [ReportController],
     providers: [ReportService, ReportRepository],
-    exports: [ReportService]
+    exports: [ReportService, ReportRepository]
 })
 export class ReportModule {}

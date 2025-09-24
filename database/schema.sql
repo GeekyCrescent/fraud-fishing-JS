@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
   `categoryId` INT UNSIGNED NOT NULL,
   `title` VARCHAR(255) NOT NULL,
   `description` TEXT NOT NULL,
+  `url` VARCHAR(255) NOT NULL,
   `status` ENUM('pending', 'in_progress', 'resolved', 'rejected') NOT NULL DEFAULT 'pending',
   `image` VARCHAR(255) NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

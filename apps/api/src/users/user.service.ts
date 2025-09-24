@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { User, UserRepository } from "./user.repository";
 import { sha256 } from "../util/crypto/hash.util";
 import { ApiProperty } from "@nestjs/swagger";
+import { ReportRepository } from "../reports/report.repository";
 
 export class UserDto {
     @ApiProperty({ example: "user@example.com", description: "Email del usuario" })
@@ -12,7 +13,8 @@ export class UserDto {
 
 @Injectable()
 export class UserService {
-    constructor(private readonly userRepository: UserRepository) {}
+    constructor(private readonly userRepository: UserRepository, 
+                private readonly reportRepository: ReportRepository) {}
 
     async registerUser(email:string, name:string, password:string):Promise<UserDto|void>{
         console.log("Aqui hacemos el hash del password")
@@ -48,5 +50,13 @@ export class UserService {
     async getUsers():Promise<UserDto[]>{
         const users = await this.userRepository.findAll();
         return users.map(user => ({ email: user.email, name: user.name }));
+    }
+
+    async getUserReportsCompleted(userId: number): Promise<any[]> {
+        return this.reportRepository.findCompletedReportsByUserId(userId);
+    }
+
+    async getUserReportsActive(userId: number): Promise<any[]> {
+        return this.reportRepository.findActiveReportsByUserId(userId);
     }
 }
