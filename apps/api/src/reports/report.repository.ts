@@ -7,6 +7,7 @@ export type Report = {
     categoryId: number;
     title: string;
     description: string;
+    url: string;
     status: string;
     image: string;
     created_at: Date;
@@ -17,15 +18,35 @@ export type Report = {
 export class ReportRepository {
     constructor(private readonly dbService: DbService) {}
 
-    async createReport(userId: number, categoryId: number, title: string, description: string, image: string): Promise<Report | void> {
-        const sql = `INSERT INTO reports (userId, categoryId, title, description, image, status, created_at, updated_at) VALUES (${userId}, '${categoryId}', '${title}', '${description}', '${image}', 'pending', NOW(), NOW())`;
-        await this.dbService.getPool().query(sql);
-    }
-
     async findAllReports(): Promise<Report[]> {
         const sql = `SELECT * FROM reports`;
         const [rows] = await this.dbService.getPool().query(sql);
         return rows as Report[];
+    }
+
+    async findReportByUrl(url: string): Promise<Report | void> {
+        const sql = `SELECT * FROM reports WHERE url = '${url}'`;
+        const [rows] = await this.dbService.getPool().query(sql);
+        const reports = rows as Report[];
+        return reports[0];
+    }
+
+    async findActiveReportsByUserId(userId: number): Promise<Report[]> {
+    const sql = `SELECT * FROM reports WHERE userId = ${userId} AND status IN ('pending', 'in_progress')`;
+    const [rows] = await this.dbService.getPool().query(sql);
+    return rows as Report[];
+    }
+
+    // Reportes finalizados del usuario (resolved o rejected)
+    async findCompletedReportsByUserId(userId: number): Promise<Report[]> {
+        const sql = `SELECT * FROM reports WHERE userId = ${userId} AND status IN ('resolved', 'rejected')`;
+        const [rows] = await this.dbService.getPool().query(sql);
+        return rows as Report[];
+    }
+
+    async createReport(userId: number, categoryId: number, title: string, description: string, image: string, url: string): Promise<Report | void> {
+        const sql = `INSERT INTO reports (userId, categoryId, title, description, image, url, status, created_at, updated_at) VALUES (${userId}, '${categoryId}', '${title}', '${description}', '${image}', '${url}', 'pending', NOW(), NOW())`;
+        await this.dbService.getPool().query(sql);
     }
 
     async updateReportStatus(id: number, status: string): Promise<Report | void> {

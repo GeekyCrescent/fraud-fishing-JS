@@ -22,9 +22,9 @@ INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password_hash`, `salt`, `rol
 -- Semilla de Reportes de Ejemplo
 -- (Opcional)
 -- ---------------------------------
-INSERT INTO `reports` (`id`, `userId`, `categoryId`, `title`, `description`, `status`) VALUES
-(1, 1, 1, 'Bache peligroso en Av. Principal', 'Hay un bache de gran tamaño frente al número 123 de la Av. Principal. Ya ha causado problemas a varios coches.', 'pending'),
-(2, 1, 2, 'Luz parpadeando en Parque Central', 'El poste de luz en la esquina sureste del Parque Central parpadea constantemente.', 'in_progress');
+INSERT INTO `reports` (`id`, `userId`, `categoryId`, `title`, `description`, `url`, `status`) VALUES
+(1, 1, 1, 'Bache peligroso en Av. Principal', 'Hay un bache de gran tamaño frente al número 123 de la Av. Principal. Ya ha causado problemas a varios coches.', 'https://ejemplo.com/bache-av-principal', 'pending'),
+(2, 1, 2, 'Luz parpadeando en Parque Central', 'El poste de luz en la esquina sureste del Parque Central parpadea constantemente.', 'https://ejemplo.com/luz-parque-central', 'in_progress');
 
 -- ---------------------------------
 -- Semilla de Historial de Estados
