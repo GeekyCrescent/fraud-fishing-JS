@@ -6,8 +6,8 @@ USE fraudfishing;
 -- VERSIÓN NUEVA
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(80) NOT NULL,
+  `email` VARCHAR(50) NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
   `salt` VARCHAR(255) NOT NULL,
   `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- ---------------------------------
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(50) NOT NULL,
   `description` TEXT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`)
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `userId` INT UNSIGNED NOT NULL,
   `categoryId` INT UNSIGNED NOT NULL,
-  `title` VARCHAR(255) NOT NULL,
+  `title` VARCHAR(50) NOT NULL,
   `description` TEXT NOT NULL,
   `url` VARCHAR(255) NOT NULL,
   `status` ENUM('pending', 'in_progress', 'resolved', 'rejected') NOT NULL DEFAULT 'pending',
