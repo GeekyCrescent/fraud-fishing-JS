@@ -1,36 +1,86 @@
-USE fraudfishing;
 
--- ---------------------------------
--- Semilla de Categorías
--- Usamos INSERT IGNORE para evitar errores si las categorías ya existen.
--- ---------------------------------
-INSERT INTO `categories` (`id`, `name`, `description`) VALUES
-(1, 'Baches', 'Reportes relacionados con baches en calles y avenidas.'),
-(2, 'Alumbrado Público', 'Postes de luz sin funcionar o con fallas intermitentes.'),
-(3, 'Recolección de Basura', 'Problemas con la recolección de basura o acumulación en la vía pública.');
 
--- ---------------------------------
--- Semilla de Usuario Administrador
--- (Opcional pero recomendado para pruebas)
--- La contraseña es 'admin123'. Asegúrate de usar un hash real en un entorno productivo.
--- Por simplicidad, aquí la guardamos en texto plano (NO HACER EN PRODUCCIÓN).
--- ---------------------------------
-INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password_hash`, `salt`, `role`) VALUES
-(1, 'Admin User', 'admin@example.com', '$2b$10$abcdefghijklmnopqrstuv', 'salt', 'admin'); -- Cambia el hash por uno real generado por tu app
+-- =========================
+-- Usuarios (3)
+-- =========================
+INSERT INTO user (id, name, email, password_hash, salt, is_admin)
+VALUES
+  (1, 'Admin User', 'admin@example.com', '$2b$10$abcdefghijklmnopqrstuv', 'salt1', 1),
+  (2, 'Jane Doe',   'jane@example.com',  '$2b$10$abcdefghijklmnopqrstuv', 'salt2', 0),
+  (3, 'John Roe',   'john@example.com',  '$2b$10$abcdefghijklmnopqrstuv', 'salt3', 0);
 
--- ---------------------------------
--- Semilla de Reportes de Ejemplo
--- (Opcional)
--- ---------------------------------
-INSERT INTO `reports` (`id`, `userId`, `categoryId`, `title`, `description`, `url`, `status`) VALUES
-(1, 1, 1, 'Bache peligroso en Av. Principal', 'Hay un bache de gran tamaño frente al número 123 de la Av. Principal. Ya ha causado problemas a varios coches.', 'https://ejemplo.com/bache-av-principal', 'pending'),
-(2, 1, 2, 'Luz parpadeando en Parque Central', 'El poste de luz en la esquina sureste del Parque Central parpadea constantemente.', 'https://ejemplo.com/luz-parque-central', 'in_progress');
+-- =========================
+-- Categorías (3)
+-- =========================
+INSERT INTO category (id, name, description)
+VALUES
+  (1, 'Estafa',             'Reportes de fraudes o engaños en línea.'),
+  (2, 'Phishing',           'Intentos de obtener información sensible mediante engaños.'),
+  (3, 'Malvertising',       'Publicidad maliciosa que redirige a sitios peligrosos.');
 
--- ---------------------------------
--- Semilla de Historial de Estados
--- (Opcional, corresponde a los reportes de ejemplo)
--- ---------------------------------
-INSERT INTO `report_status_history` (`id`, `reportId`, `from_status`, `to_status`, `note`, `changed_by`) VALUES
-(1, 1, NULL, 'pending', 'Reporte creado por el sistema.', 1),
-(2, 2, NULL, 'pending', 'Reporte creado por el sistema.', 1),
-(3, 2, 'pending', 'in_progress', 'Equipo asignado para revisión.', 1);
+-- =========================
+-- Status (3)
+-- =========================
+-- Nota: solo 3 estados como pediste
+INSERT INTO status (id, name)
+VALUES
+  (1, 'pending'),
+  (2, 'in_progress'),
+  (3, 'resolved'),
+  (4, 'rejected');
+
+-- =========================
+-- Tags (3)
+-- =========================
+INSERT INTO tag (id, name, use_num)
+VALUES
+  (1, 'Electronicos', 0),
+  (2, 'Banco',    0),
+  (3, 'Redes Sociales', 0);
+
+-- =========================
+-- Reports (3)
+-- =========================
+-- user_id -> 1..3, category_id -> 1..3, status_id -> 1..3
+INSERT INTO report (
+  id, user_id, category_id, title, description, url, status_id, image_url
+) VALUES
+  (1, 1, 1, 'Tienda falsa de electrónicos con “90% OFF”',
+     'Sitio que oferta consolas y laptops a precios irreales; solo acepta transferencias/SPEI y cambia de dominio frecuentemente.',
+     'https://example.com/estafa-electronicos', 1, 'https://img.example.com/estafa1.png'),
+
+  (2, 2, 2, 'Correo de phishing: “Verifica tu cuenta bancaria”',
+     'Email con remitente parecido al banco y enlace a dominio sospechoso que solicita usuario/contraseña y OTP.',
+     'https://example.com/phishing-banco', 2, NULL),
+
+  (3, 3, 3, 'Malvertising en banner: redirección a descarga maliciosa',
+     'Anuncio en red social redirige a un sitio que intenta descargar un instalador .exe con supuesta “actualización de seguridad”.',
+     'https://example.com/malvertising-campana', 3, 'https://img.example.com/malv3.jpg');
+
+-- =========================
+-- Report Status History (3)
+-- =========================
+-- from_status puede ser NULL en el primer evento
+INSERT INTO report_status_history (id, report_id, from_status, to_status, note, changed_by)
+VALUES
+  (1, 1, NULL, 1, 'Reporte creado por el sistema.', 1),
+  (2, 2, 1,    2, 'Asignado a cuadrilla de mantenimiento.', 1),
+  (3, 3, 2,    3, 'Trabajo completado y validado.', 2);
+
+-- =========================
+-- Report ↔ Tag (3)
+-- =========================
+INSERT INTO report_has_tag (report_id, tag_id)
+VALUES
+  (1, 1),  
+  (2, 2),  
+  (3, 3);
+
+-- =========================
+-- Notificaciones (3)
+-- =========================
+INSERT INTO notifications (id, user_id, seen)
+VALUES
+  (1, 1, 0),
+  (2, 2, 0),
+  (3, 3, 1);
