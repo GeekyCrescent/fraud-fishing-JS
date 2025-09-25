@@ -1,68 +1,92 @@
 USE fraudfishing;
 
--- ---------------------------------
--- Tabla de Usuarios (users)
--- ---------------------------------
--- VERSIÓN NUEVA
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) NOT NULL,
-  `password_hash` VARCHAR(255) NOT NULL,
-  `salt` VARCHAR(255) NOT NULL,
-  `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_email` (`email`)
+-- user
+CREATE TABLE user (
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name           VARCHAR(80)      NOT NULL,
+  email          VARCHAR(50)      NOT NULL,
+  password_hash  VARCHAR(255)     NOT NULL,
+  salt           VARCHAR(255)     NOT NULL,
+  is_admin       TINYINT(1)       NOT NULL DEFAULT 0,
+  created_at     TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at     TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 );
 
--- ---------------------------------
--- Tabla de Categorías (categories)
--- ---------------------------------
-CREATE TABLE IF NOT EXISTS `categories` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
-  `description` TEXT,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- category
+CREATE TABLE category (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name         VARCHAR(50)     NOT NULL,
+  description  TEXT            NULL,
+  created_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
 
--- ---------------------------------
--- Tabla de Reportes (reports)
--- ---------------------------------
-CREATE TABLE IF NOT EXISTS `reports` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `userId` INT UNSIGNED NOT NULL,
-  `categoryId` INT UNSIGNED NOT NULL,
-  `title` VARCHAR(255) NOT NULL,
-  `description` TEXT NOT NULL,
-  `url` VARCHAR(255) NOT NULL,
-  `status` ENUM('pending', 'in_progress', 'resolved', 'rejected') NOT NULL DEFAULT 'pending',
-  `image` VARCHAR(255) NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_reports_users` (`userId`),
-  KEY `fk_reports_categories` (`categoryId`),
-  KEY `idx_status` (`status`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_reports_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_reports_categories` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- status
+CREATE TABLE status (
+  id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name  VARCHAR(20)     NOT NULL,
+  PRIMARY KEY (id)
+);
 
--- ---------------------------------
--- Tabla de Historial de Estados (report_status_history)
--- ---------------------------------
-CREATE TABLE IF NOT EXISTS `report_status_history` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `reportId` INT UNSIGNED NOT NULL,
-  `from_status` ENUM('pending', 'in_progress', 'resolved', 'rejected'),
-  `to_status` ENUM('pending', 'in_progress', 'resolved', 'rejected') NOT NULL,
-  `note` VARCHAR(255),
-  `changed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `changed_by` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_history_reports` (`reportId`),
-  KEY `fk_history_users` (`changed_by`),
-  CONSTRAINT `fk_history_reports` FOREIGN KEY (`reportId`) REFERENCES `reports` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_history_users` FOREIGN KEY (`changed_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- report
+CREATE TABLE report (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  category_id  BIGINT UNSIGNED NOT NULL,
+  title        VARCHAR(100)     NOT NULL,
+  description  TEXT            NOT NULL,
+  url          VARCHAR(255)    NOT NULL,
+  status_id    BIGINT UNSIGNED NOT NULL,
+  image_url    VARCHAR(255)    NULL,
+  created_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_id)     REFERENCES user(id),
+  FOREIGN KEY (category_id) REFERENCES category(id),
+  FOREIGN KEY (status_id)   REFERENCES status(id)
+);
+
+-- report_status_history
+CREATE TABLE report_status_history (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  report_id    BIGINT UNSIGNED NOT NULL,
+  from_status  BIGINT UNSIGNED NULL,
+  to_status    BIGINT UNSIGNED NOT NULL,
+  note         VARCHAR(255)    NULL,
+  changed_at   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  changed_by   BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (report_id)   REFERENCES report(id),
+  FOREIGN KEY (from_status) REFERENCES status(id),
+  FOREIGN KEY (to_status)   REFERENCES status(id),
+  FOREIGN KEY (changed_by)  REFERENCES user(id)
+);
+
+-- tag
+CREATE TABLE tag (
+  id       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name     VARCHAR(30)     NOT NULL,
+  use_num  INT             NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+-- report_has_tag (PK compuesta)
+CREATE TABLE report_has_tag (
+  report_id  BIGINT UNSIGNED NOT NULL,
+  tag_id     BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (report_id, tag_id),
+  FOREIGN KEY (report_id) REFERENCES report(id),
+  FOREIGN KEY (tag_id)    REFERENCES tag(id)
+);
+
+-- notifications (mínima)
+CREATE TABLE notifications (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id    BIGINT UNSIGNED NOT NULL,
+  seen       TINYINT(1)      NOT NULL DEFAULT 0,
+  created_at TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_id) REFERENCES user(id)
+);
