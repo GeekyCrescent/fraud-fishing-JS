@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `report` (
   `title` VARCHAR(255) NOT NULL,
   `description` TEXT NOT NULL,
   `url` VARCHAR(255) NOT NULL,
-  `status` ENUM('pending', 'in_progress', 'resolved', 'rejected') NOT NULL DEFAULT 'pending',
+  `status_id` TINYINT UNSIGNED NOT NULL DEFAULT 1, 
   `image_url` VARCHAR(255) NULL,
   `vote_count` INT NOT NULL DEFAULT 0,
   `comment_count` INT NOT NULL DEFAULT 0,
@@ -46,8 +46,17 @@ CREATE TABLE IF NOT EXISTS `report` (
   KEY `fk_report_user` (`user_id`),
   KEY `fk_report_category` (`category_id`),
   KEY `idx_popularity` (`vote_count` DESC, `created_at` DESC),
+  KEY `idx_status` (`status_id`),
   CONSTRAINT `fk_report_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_report_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `report_status` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `description` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 

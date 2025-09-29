@@ -7,6 +7,7 @@ export type UserProfile ={
     id:string, 
     email:string,
     name:string
+    is_admin:boolean
 }
 
 export type AccessPayload={
@@ -29,11 +30,11 @@ export class TokenService{
             type: "access",
             profile: profile
         },{
-            expiresIn: "1m",
+            expiresIn: "30m",
             secret: "supersecret"
         })
     }
-
+    
     async generateRefresh(userId:string):Promise<string>{
         return this.jwtService.signAsync({
             sub: userId,
