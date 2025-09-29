@@ -110,4 +110,11 @@ INSERT INTO `notification` (`recipient_user_id`, `notification_type_id`, `conten
 (5, 1, 'Tu reporte "Página con muchos pop-ups" ha sido denegado.', 4),
 (2, 2, 'David Soto ha comentado en tu reporte "Venta de boletos falsos para conciertos".', 7);
 
+INSERT INTO `report_status` (`id`, `name`, `description`) VALUES
+(1, 'pending', 'El reporte ha sido recibido y está esperando revisión.'),
+(2, 'in_progress', 'Un administrador está investigando activamente el reporte.'),
+(3, 'resolved', 'Se ha confirmado que el reporte es válido y se tomarán acciones.'),
+(4, 'rejected', 'El reporte fue revisado y se determinó que no procede.');
+
+
 SELECT 'Base de datos poblada con éxito.' AS 'Resultado';

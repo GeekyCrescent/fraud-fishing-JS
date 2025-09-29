@@ -1,50 +1,57 @@
 import { Injectable } from "@nestjs/common";
 import { DbService } from "src/db/db.service";
 
-export type User= {
+export type User = {
     id: number;
     email: string;
     name: string;
     password_hash: string;
     salt: string;
-    role: string; 
+    is_admin: boolean; 
+    created_at: Date; 
 }
 
-
 @Injectable()
-export class UserRepository{
+export class UserRepository {
     constructor(private readonly dbService: DbService) {}
 
-    async registerUser(email:string, 
-        name:string, password:string, role:string):Promise<User|void>{
-        const sql= `INSERT INTO users (email,name,password_hash,salt, role) VALUES ('${email}','${name}','${password}','saltTest', '${role||'user'}')`;
-        await this.dbService.getPool().query(sql);
-    }
+    // --- GETS ---
 
-    async findByEmail(email:string):Promise<User>{
-        const sql= `SELECT * FROM users WHERE email='${email}' LIMIT 1`;
-        const [rows]= await this.dbService.getPool().query(sql);
-        const result= rows as User[];
-        return result[0];
-    }
-    async findById(id:number):Promise<User>{
-        const sql= `SELECT * FROM users WHERE id='${id}' LIMIT 1`;
-        const [rows]= await this.dbService.getPool().query(sql);
-        const result= rows as User[];
-        return result[0];
-    }
-
-
-    async updateUser(user: User): Promise<void> {
-        const sql = `UPDATE users SET name='${user.name}', password_hash='${user.password_hash}' WHERE id=${user.id}`;
-        await this.dbService.getPool().query(sql);
-    }
-
-      async findAll():Promise<User[]>{
-        const sql= `SELECT * FROM users`;
-        const [rows]= await this.dbService.getPool().query(sql);
-        const result= rows as User[];
+    async findAll(): Promise<User[]> {
+        const sql = `SELECT * FROM user`;
+        const [rows] = await this.dbService.getPool().query(sql);
+        const result = rows as User[];
         return result;
     }
 
+    async findByEmail(email: string): Promise<User> {
+        const sql = `SELECT * FROM user WHERE email = ? LIMIT 1`;  
+        const [rows] = await this.dbService.getPool().query(sql, [email]);
+        const result = rows as User[];
+        return result[0];
+    }
+
+    async findById(id: number): Promise<User> {
+        const sql = `SELECT * FROM user WHERE id = ? LIMIT 1`; 
+        const [rows] = await this.dbService.getPool().query(sql, [id]);
+        const result = rows as User[];
+        return result[0];
+    }
+
+    // --- PUTS ---
+
+    async updateUser(user: User): Promise<void> {
+        const sql = `UPDATE user SET name = ?, password_hash = ? WHERE id = ?`;  
+        await this.dbService.getPool().query(sql, [user.name, user.password_hash, user.id]);
+    }
+
+    // --- POSTS ---
+
+    async registerUser(email: string, name: string, hashedPassword: string, salt: string, isAdmin: boolean = false): Promise<void> {
+        const sql = `
+            INSERT INTO user (name, email, password_hash, salt, is_admin) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        await this.dbService.getPool().query(sql, [name, email, hashedPassword, salt, isAdmin]);
+    }
 }

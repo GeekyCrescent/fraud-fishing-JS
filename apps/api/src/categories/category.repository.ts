@@ -1,30 +1,56 @@
 import { Injectable } from "@nestjs/common";
-import { DbService } from "src/db/db.service";
+import { DbService } from "../db/db.service"; // Corregir ruta relativa
 
-export type Category= {
+export type Category = {
     id: number;
     name: string;
     description: string; 
 }
 
 @Injectable()
-export class CategoryRepository{
+export class CategoryRepository {
     constructor(private readonly dbService: DbService) {}
 
-    async createCategory(name: string, description: string): Promise<Category | void> {
-        const sql = `INSERT INTO categories (name, description) VALUES ('${name}', '${description}')`;
-        await this.dbService.getPool().query(sql);
-    }
+    // --- GETS ---
 
     async findAllCategories(): Promise<Category[]> {
-        const sql = `SELECT * FROM categories`;
+        const sql = `SELECT * FROM category`;
         const [rows] = await this.dbService.getPool().query(sql);
         return rows as Category[];
     }
 
-    async deleteCategory(id: number): Promise<Category | void> {
-        const sql = `DELETE FROM categories WHERE id = ${id}`;
-        await this.dbService.getPool().query(sql);
+    async findById(id: number): Promise<Category> {
+        const sql = `SELECT * FROM category WHERE id = ? LIMIT 1`;
+        const [rows] = await this.dbService.getPool().query(sql, [id]);
+        const result = rows as Category[];
+        return result[0];
     }
-    
+
+    async findByName(name: string): Promise<Category> {
+        const sql = `SELECT * FROM category WHERE name = ? LIMIT 1`;
+        const [rows] = await this.dbService.getPool().query(sql, [name]);
+        const result = rows as Category[];
+        return result[0];
+    }
+
+    // --- POSTS ---
+
+    async createCategory(name: string, description: string): Promise<void> {
+        const sql = `INSERT INTO category (name, description) VALUES (?, ?)`;
+        await this.dbService.getPool().query(sql, [name, description]);
+    }
+
+    // --- PUTS ---
+
+    async updateCategory(id: number, name: string, description: string): Promise<void> {
+        const sql = `UPDATE category SET name = ?, description = ? WHERE id = ?`;
+        await this.dbService.getPool().query(sql, [name, description, id]);
+    }
+
+    // --- DELETES ---
+
+    async deleteCategory(id: number): Promise<void> {
+        const sql = `DELETE FROM category WHERE id = ?`;
+        await this.dbService.getPool().query(sql, [id]);
+    }
 }
