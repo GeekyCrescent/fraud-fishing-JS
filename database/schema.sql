@@ -3,8 +3,8 @@
 -- ---------------------------------
 CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(80) NOT NULL,
+  `email` VARCHAR(50) NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
   `salt` VARCHAR(255) NOT NULL,
   `is_admin` BOOLEAN NOT NULL DEFAULT FALSE,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 
 CREATE TABLE IF NOT EXISTS `category` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(50) NOT NULL,
   `description` TEXT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`)
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `report` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` BIGINT UNSIGNED NOT NULL,
   `category_id` BIGINT UNSIGNED NOT NULL,
-  `title` VARCHAR(255) NOT NULL,
+  `title` VARCHAR(50) NOT NULL,
   `description` TEXT NOT NULL,
   `url` VARCHAR(255) NOT NULL,
   `status_id` TINYINT UNSIGNED NOT NULL DEFAULT 1, 
