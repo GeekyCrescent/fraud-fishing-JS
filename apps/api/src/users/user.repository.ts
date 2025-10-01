@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UserStatsResponseDto } from "src/admin/dto/user-stats.dto";
 import { DbService } from "src/db/db.service";
 
 export type User = {
@@ -36,6 +37,28 @@ export class UserRepository {
         const [rows] = await this.dbService.getPool().query(sql, [id]);
         const result = rows as User[];
         return result[0];
+    }
+
+    async findAllUsersWithStats(): Promise<any[]> {
+        const sql = `
+            SELECT 
+            u.id,
+            u.name,
+            u.email,
+            u.is_admin,
+            u.created_at,
+            COUNT(DISTINCT r.id) as reportCount,
+            COUNT(DISTINCT c.id) as commentCount,
+            COUNT(DISTINCT rv.id) as likeCount
+            FROM user u
+            LEFT JOIN report r ON u.id = r.user_id
+            LEFT JOIN comment c ON u.id = c.user_id
+            LEFT JOIN report_vote rv ON u.id = rv.user_id
+            GROUP BY u.id, u.name, u.email, u.is_admin, u.created_at
+            ORDER BY u.created_at DESC
+        `;
+        const [rows] = await this.dbService.getPool().query(sql);
+        return rows as any[];
     }
 
     // --- PUTS ---
