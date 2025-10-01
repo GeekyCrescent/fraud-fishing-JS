@@ -139,20 +139,6 @@ export class ReportController {
         return this.reportService.updateReportById(Number(id), updateReportDto);
     }
 
-    @Put(':id/status')
-    @UseGuards(JwtAuthGuard) // Agregar autenticación para operaciones de moderación
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Actualizar el status de un reporte (Solo moderadores/admins)' })
-    @ApiParam({ name: 'id', description: 'ID del reporte', type: 'number' })
-    @ApiBody({ type: UpdateReportStatusDto })
-    @ApiResponse({ status: 200, description: "Status del reporte actualizado exitosamente", type: ReportDto })
-    @ApiResponse({ status: 400, description: "ID inválido o status inválido" })
-    @ApiResponse({ status: 401, description: "Token inválido" })
-    @ApiResponse({ status: 404, description: "Reporte no encontrado" })
-    async updateReportStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateReportStatusDto): Promise<ReportDto> {
-        return this.reportService.updateReportStatus(Number(id), updateStatusDto.statusId);
-    }
-
     @Put(':id/vote')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
