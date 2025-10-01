@@ -181,4 +181,68 @@ export class ReportRepository {
         const result = rows as {id: number, name: string, description?: string}[];
         return result[0];
     }
+
+    // ===== MÉTODOS PARA ACTUALIZAR STATUS =====
+
+    async updateReportStatusWithModeration(
+        reportId: number, 
+        newStatusId: number, 
+        moderatorId: number,
+        moderationNote?: string
+    ): Promise<void> {
+        const connection = await this.dbService.getPool().getConnection();
+        
+        try {
+            await connection.beginTransaction();
+
+            // 1. Actualizar el status del reporte
+            const updateReportSql = `
+                UPDATE report 
+                SET status_id = ?, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?
+            `;
+            const [updateResult] = await connection.query(updateReportSql, [newStatusId, reportId]);
+            
+            if ((updateResult as any).affectedRows === 0) {
+                throw new Error(`No se pudo actualizar el reporte con ID ${reportId}`);
+            }
+
+            await connection.commit();
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
+    async findStatusById(statusId: number): Promise<{ id: number; name: string; description: string } | null> {
+        const sql = `SELECT id, name, description FROM report_status WHERE id = ? LIMIT 1`;
+        const [rows] = await this.dbService.getPool().query(sql, [statusId]);
+        const result = rows as Array<{ id: number; name: string; description: string }>;
+        return result[0] || null;
+    }
+
+    async addStatusHistoryEntry(
+        reportId: number,
+        fromStatusId: number,
+        toStatusId: number,
+        note: string,
+        changeReason: string,
+        changedByUserId: number
+    ): Promise<void> {
+        const sql = `
+            INSERT INTO report_status_history 
+            (report_id, from_status_id, to_status_id, note, change_reason, changed_by_user_id, changed_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `;
+        await this.dbService.getPool().query(sql, [
+            reportId, 
+            fromStatusId, 
+            toStatusId, 
+            note, 
+            changeReason, 
+            changedByUserId
+        ]);
+    }
 }

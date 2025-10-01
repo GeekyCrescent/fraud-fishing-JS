@@ -81,13 +81,12 @@ export class UpdateReportDto {
     imageUrl?: string;
 }
 
-// Agregar este DTO aquí
 export class UpdateReportStatusDto {
-    @ApiProperty({ 
-        example: 1, 
-        description: "Nuevo status ID del reporte (1=pending, 2=in_progress, 3=resolved, 4=rejected)" 
-    })
+    @ApiProperty({ example: 3, description: "ID del nuevo status" })
     statusId: number;
+
+    @ApiProperty({ example: "El reporte ha sido verificado y las acciones correspondientes han sido tomadas", description: "Nota opcional del moderador",})
+    moderationNote?: string;
 }
 
 export class ReportStatusDto {

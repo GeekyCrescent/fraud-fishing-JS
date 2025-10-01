@@ -10,7 +10,7 @@ import { ReportModule } from "src/reports/report.module";
 
 @Module({
   imports: [NotificationModule, UserModule, ReportModule],
-  controllers: [AdminController, AdminNotificationController],
+  controllers: [AdminController],
   providers: [AdminService, UserRepository, ReportRepository], 
   exports: [AdminService] 
 })
