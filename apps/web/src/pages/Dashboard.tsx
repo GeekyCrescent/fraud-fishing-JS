@@ -1,58 +1,127 @@
-import { Routes, Route, Link } from "react-router-dom";
-import DashboardHome from "./modules/DashboardHome";
-import ReportValidation from "./modules/ReportValidation";
-import CrudReportes from "./modules/CrudReportes";
-import CrudCategorias from "./modules/CrudCategorias";
-import CrudUsuarios from "./modules/CrudUsuarios";
-import CrudAdmins from "./modules/CrudAdmins";
+import { NavLink, Outlet } from "react-router-dom";
+import {
+  HomeIcon,
+  Cog6ToothIcon,
+  ChartPieIcon,
+  UserIcon,
+  PlusCircleIcon,
+  DocumentTextIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline"; // 👈 usa outline para el estilo fino
 
 export default function Dashboard() {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#00204D] text-white flex flex-col">
-        <div className="p-6 text-center font-bold text-xl border-b border-[#00B5BC]">
-          FraudFishing
+      <aside className="w-64 h-screen flex flex-col bg-white border-r-1 border-teal-300">
+        {/* Logo */}
+        <div className="p-6 text-2xl font-bold text-teal-500">
+          Fraud<span className="text-black">Fishing</span>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          <Link to="" className="block p-2 rounded hover:bg-[#00B5BC]">
+
+        {/* Menu */}
+        <nav className="flex-1 px-4 space-y-2">
+          <NavLink
+            to="/dashboard"
+            end
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <HomeIcon className="w-5 h-5 text-teal-600" />
             Dashboard
-          </Link>
-          <Link to="reportes" className="block p-2 rounded hover:bg-[#00B5BC]">
-            Validar/Denegar Reportes
-          </Link>
-          <Link to="crud-reportes" className="block p-2 rounded hover:bg-[#00B5BC]">
-            CRUD Reportes
-          </Link>
-          <Link to="crud-categorias" className="block p-2 rounded hover:bg-[#00B5BC]">
-            CRUD Categorías
-          </Link>
-          <Link to="crud-usuarios" className="block p-2 rounded hover:bg-[#00B5BC]">
-            CRUD Usuarios
-          </Link>
-          <Link to="crud-admins" className="block p-2 rounded hover:bg-[#00B5BC]">
-            CRUD Admins
-          </Link>
+          </NavLink>
+
+          <NavLink
+            to="reportes"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <Cog6ToothIcon className="w-5 h-5 text-teal-600" />
+            Reportes
+          </NavLink>
+
+          <NavLink
+            to="usuarios"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <UserIcon className="w-5 h-5 text-teal-600" />
+            Usuarios
+          </NavLink>
+
+          <NavLink
+            to="categorias"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <ChartPieIcon className="w-5 h-5 text-teal-600" />
+            Categorías
+          </NavLink>
+
+          <NavLink
+            to="admins"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <PlusCircleIcon className="w-5 h-5 text-teal-600" />
+            Admins
+          </NavLink>
+
+          <NavLink
+            to="validar"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-teal-100 text-teal-700 font-semibold"
+                  : "text-gray-700 hover:bg-teal-50"
+              }`
+            }
+          >
+            <DocumentTextIcon className="w-5 h-5 text-teal-600" />
+            Validar Reportes
+          </NavLink>
         </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200">
+          <NavLink
+            to="help"
+            className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:bg-teal-50 rounded-lg"
+          >
+            <QuestionMarkCircleIcon className="w-5 h-5 text-teal-600" />
+            Cerrar Sesión
+          </NavLink>
+        </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[#00204D]">Dashboard</h1>
-          <div className="text-sm text-gray-600">admin@demo.com</div>
-        </header>
-
-        <section className="bg-white p-6 rounded-lg shadow">
-          <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="reportes" element={<ReportValidation />} />
-            <Route path="crud-reportes" element={<CrudReportes />} />
-            <Route path="crud-categorias" element={<CrudCategorias />} />
-            <Route path="crud-usuarios" element={<CrudUsuarios />} />
-            <Route path="crud-admins" element={<CrudAdmins />} />
-          </Routes>
-        </section>
+        <Outlet /> {/* Aquí se renderizan los módulos */}
       </main>
     </div>
   );

@@ -1,30 +1,32 @@
-import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+
+// Módulos
 import DashboardHome from "./pages/modules/DashboardHome";
-import ReportValidation from "./pages/modules/ReportValidation";
+import CrudUsuarios from "./pages/modules/CrudUsuarios";
 import CrudReportes from "./pages/modules/CrudReportes";
 import CrudCategorias from "./pages/modules/CrudCategorias";
-import CrudUsuarios from "./pages/modules/CrudUsuarios";
 import CrudAdmins from "./pages/modules/CrudAdmins";
+import ReportValidation from "./pages/modules/ReportValidation";
 
-export default function App() {
-  const [user, setUser] = useState<{ correo: string } | null>(null);
-
+function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login setUser={setUser} />} />
-      
-      {/* Dashboard con rutas hijas */}
+      {/* Login */}
+      <Route path="/" element={<Login />} />
+
+      {/* Dashboard con sidebar */}
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<DashboardHome />} />
-        <Route path="reportes" element={<ReportValidation />} />
-        <Route path="crud-reportes" element={<CrudReportes />} />
-        <Route path="crud-categorias" element={<CrudCategorias />} />
-        <Route path="crud-usuarios" element={<CrudUsuarios />} />
-        <Route path="crud-admins" element={<CrudAdmins />} />
+        <Route path="usuarios" element={<CrudUsuarios />} />
+        <Route path="reportes" element={<CrudReportes />} />
+        <Route path="categorias" element={<CrudCategorias />} />
+        <Route path="admins" element={<CrudAdmins />} />
+        <Route path="validar" element={<ReportValidation />} />
       </Route>
     </Routes>
   );
 }
+
+export default App;
