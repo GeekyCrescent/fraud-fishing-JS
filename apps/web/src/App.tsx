@@ -13,14 +13,10 @@ import ReportValidation from "./pages/modules/ReportValidation";
 function App() {
   return (
     <Routes>
-<<<<<<< Updated upstream
       {/* Login */}
       <Route path="/" element={<Login />} />
 
       {/* Dashboard con sidebar */}
-=======
-      <Route path="/" element={<Login />} />
->>>>>>> Stashed changes
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<DashboardHome />} />
         <Route path="usuarios" element={<CrudUsuarios />} />
