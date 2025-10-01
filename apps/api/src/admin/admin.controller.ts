@@ -3,6 +3,7 @@ import { AdminService } from "./admin.service";
 import { ApiBody, ApiProperty, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; // Importar ApiOperation y ApiBearerAuth
 import { UpdateUserDto, UserDto } from "../users/dto/user.dto";
 import { CreateAdminDto } from "./dto/admin.dto";
+import { UserStatsDto, UserStatsResponseDto } from "./dto/user-stats.dto";
 
 @ApiTags("Endpoints de Administrador")
 @Controller("admin")
@@ -24,6 +25,22 @@ export class AdminController {
     // ========== | USER Endpoints | ==========
 
     //  GETs
+
+    @Get("user/stats")
+    @ApiOperation({ summary: "Obtener estadísticas de usuarios (solo administradores)" })
+    @ApiBearerAuth()
+    @ApiResponse({ status: 200, description: "Estadísticas de usuarios obtenidas exitosamente" })
+    async getUserWithStats(): Promise<UserStatsResponseDto> {
+        return this.adminService.getUsersWithStats();
+    }
+
+    @Get('user/top-active')
+    @ApiOperation({ summary: 'Obtener usuarios más activos' })
+    @ApiBearerAuth()
+    @ApiResponse({ status: 200, description: "Usuarios más activos obtenidos exitosamente"})
+    async getTopActiveUsers(): Promise<UserStatsDto[]> {
+        return this.adminService.getTopActiveUsers(10);
+    }
 
     @Get('user/list')
     @ApiOperation({ summary: 'Obtener lista de todos los usuarios (solo administradores)' }) 
