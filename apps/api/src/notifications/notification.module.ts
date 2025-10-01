@@ -5,7 +5,7 @@ import { NotificationController } from './notification.controller';
 
 @Module({
   controllers: [
-    NotificationController, // Controller principal (endpoints públicos e internos)
+    NotificationController,
   ],
   providers: [
     NotificationService,

@@ -5,11 +5,15 @@ import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request";
 import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto } from "./dto/report.dto";
 import { CommentDto } from "../comments/dto/comment.dto";
+import { NotificationService } from '../notifications/notification.service';
 
 @ApiTags("Endpoints de Reportes")
 @Controller("reports")
 export class ReportController {
-    constructor(private readonly reportService: ReportService) {}
+    constructor(
+        private readonly reportService: ReportService,
+        private readonly notificationService: NotificationService // ← Agregar
+    ) {}
 
     // ===== POSTS =======
 
@@ -158,6 +162,28 @@ export class ReportController {
     @ApiResponse({ status: 404, description: "Reporte no encontrado" })
     async voteReport(@Param('id') id: string, @Body() body: { voteType: 'up' | 'down' }): Promise<ReportDto> {
         return this.reportService.voteReport(Number(id), body.voteType);
+    }
+
+    // ===== NUEVO ENDPOINT PARA ACTUALIZAR STATUS =====
+
+    @Put(':id/status')
+    @ApiOperation({ summary: 'Actualizar el status de un reporte' })
+    @ApiParam({ name: 'id', description: 'ID del reporte', type: 'number' })
+    @ApiBody({ type: UpdateReportStatusDto })
+    @ApiResponse({ status: 200, description: "Status actualizado exitosamente", type: ReportDto })
+    async updateReportStatus(
+        @Param('id') id: string, 
+        @Body() updateStatusDto: UpdateReportStatusDto,
+        @Req() req: AuthenticatedRequest
+    ): Promise<ReportDto> {
+        const moderatorId = Number(req.user.profile.id);
+        
+        return this.reportService.updateReportStatusWithModeration(
+            Number(id), 
+            updateStatusDto.statusId,
+            moderatorId,
+            updateStatusDto.moderationNote
+        );
     }
 
     // ===== DELETES =======

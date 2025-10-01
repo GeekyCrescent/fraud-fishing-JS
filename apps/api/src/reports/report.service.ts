@@ -3,12 +3,14 @@ import { Report, ReportRepository, ReportWithStatus } from "./report.repository"
 import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto } from "./dto/report.dto";
 import { CommentDto, CreateCommentDto } from "src/comments/dto/comment.dto";
 import { CommentService } from "src/comments/comment.service";
+import { NotificationService } from '../notifications/notification.service'; // ← Agregar
 
 @Injectable()
 export class ReportService {
     constructor(
         private readonly reportRepository: ReportRepository,
-        private readonly commentService: CommentService
+        private readonly commentService: CommentService,
+        private readonly notificationService: NotificationService // ← Agregar
     ) {}
 
     // --- GETS ---
@@ -209,6 +211,124 @@ export class ReportService {
             name: status.name,
             description: status.description
         }));
+    }
+
+    // ===== NUEVO MÉTODO PARA ACTUALIZAR STATUS =====
+
+    async updateReportStatusWithModeration(
+        reportId: number, 
+        newStatusId: number, 
+        moderatorId: number,
+        moderationNote?: string
+    ): Promise<ReportDto> {
+        // 1. Validaciones básicas
+        if (!reportId || reportId <= 0) {
+            throw new BadRequestException("ID de reporte inválido");
+        }
+
+        if (!newStatusId || newStatusId <= 0) {
+            throw new BadRequestException("ID de status inválido");
+        }
+
+        // 2. Obtener el reporte actual
+        const currentReport = await this.reportRepository.findByIdWithStatus(reportId);
+        if (!currentReport) {
+            throw new NotFoundException("Reporte no encontrado");
+        }
+
+        // 3. Verificar que el status existe
+        const newStatus = await this.reportRepository.findStatusById(newStatusId);
+        if (!newStatus) {
+            throw new BadRequestException("Status inválido");
+        }
+
+        // 4. No actualizar si ya tiene el mismo status
+        if (currentReport.status_id === newStatusId) {
+            throw new BadRequestException("El reporte ya tiene ese status");
+        }
+
+        // 5. Obtener el status anterior
+        const previousStatus = await this.reportRepository.findStatusById(currentReport.status_id);
+
+        // 6. Actualizar el status en la base de datos
+        await this.reportRepository.updateReportStatusWithModeration(
+            reportId, 
+            newStatusId, 
+            moderatorId, 
+            moderationNote
+        );
+
+        // 7. Registrar en historial
+        await this.reportRepository.addStatusHistoryEntry(
+            reportId,
+            currentReport.status_id,
+            newStatusId,
+            moderationNote || `Status cambiado de ${previousStatus?.name} a ${newStatus.name}`,
+            `Status actualizado por moderador`,
+            moderatorId
+        );
+
+        // 8. Crear comentario automático para status "completed"
+        if (newStatus.name.toLowerCase() === 'completed') {
+            await this.createCompletionComment(currentReport, moderatorId, moderationNote);
+        }
+
+        // 9. Enviar notificación al autor del reporte
+        await this.sendStatusChangeNotification(currentReport, newStatus.name);
+
+        // 10. Obtener el reporte actualizado
+        const updatedReport = await this.reportRepository.findByIdWithStatus(reportId);
+        return this.mapReportWithStatusToDto(updatedReport);
+    }
+
+    // ===== MÉTODOS HELPER =====
+
+    private async createCompletionComment(
+        report: ReportWithStatus,
+        moderatorId: number,
+        moderationNote?: string
+    ): Promise<void> {
+        try {
+            let commentContent = '✅ **Reporte Completado**\n\n';
+            commentContent += 'Este reporte ha sido marcado como **completado** por nuestro equipo de moderación. ';
+            commentContent += 'Las acciones necesarias han sido tomadas para abordar esta amenaza de seguridad.\n\n';
+            
+            if (moderationNote && moderationNote.trim()) {
+                commentContent += `**Nota del moderador:** ${moderationNote.trim()}\n\n`;
+            }
+            
+            commentContent += '¡Gracias por ayudar a mantener internet más seguro! 🛡️';
+
+            const createCommentDto: CreateCommentDto = {
+                reportId: report.id,
+                userId: moderatorId,
+                title: '✅ Reporte Completado',
+                content: commentContent,
+                imageUrl: undefined
+            };
+
+            await this.commentService.createComment(createCommentDto);
+        } catch (error) {
+            // Log del error pero no fallar la operación principal
+            console.error('Error creando comentario de completación:', error);
+        }
+    }
+
+    private async sendStatusChangeNotification(
+        report: ReportWithStatus,
+        newStatusName: string
+    ): Promise<void> {
+        try {
+            await this.notificationService.notifyReportStatusChange(
+                report.user_id,
+                report.id,
+                report.title || report.url,
+                newStatusName
+            );
+        } catch (error) {
+            // Log del error pero no fallar la operación principal
+            console.error('Error enviando notificación de cambio de status:', error);
+        }
     }
 
     // --- HELPER METHODS ---
