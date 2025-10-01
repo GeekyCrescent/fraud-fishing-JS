@@ -109,33 +109,30 @@ export class ReportService {
 
     // --- POSTS ---
 
-    async createReport(createReportDto: CreateReportDto): Promise<ReportDto | CommentDto> {
+    async createReport(createReportDto: CreateReportDto): Promise<ReportDto> {
         const { userId, categoryId, title, description, url, imageUrl } = createReportDto;
 
-        if (typeof userId !== "number") {
+        // Validaciones existentes...
+        if (!userId || typeof userId !== "number" || userId <= 0) {
             throw new BadRequestException("ID de usuario inválido");
         }
 
-        const existingReport = await this.reportRepository.findReportByUrl(url);
+        await this.reportRepository.createReport(
+            userId, 
+            categoryId, 
+            title.trim(), 
+            description.trim(), 
+            url.trim(), 
+            imageUrl
+        );
         
-        if (existingReport) {
-            const commentDto: CreateCommentDto = {
-                reportId: existingReport.id,
-                userId: userId,
-                title: title,
-                content: description,
-                imageUrl: imageUrl
-            };
-            
-            await this.reportRepository.incrementCommentCount(existingReport.id);
-            
-
-            return this.commentService.createComment(commentDto);
-        } else {
-            await this.reportRepository.createReport(userId, categoryId, title, description, url, imageUrl);
-            const newReport = await this.reportRepository.findLatestReportByUserAndUrl(userId, url);
-            return this.mapReportToDto(newReport);
+        const newReport = await this.reportRepository.findLatestReportByUserAndUrl(userId, url.trim());
+        
+        if (!newReport) {
+            throw new Error("Error al crear el reporte");
         }
+        
+        return this.mapReportToDto(newReport);
     }
 
     // --- PUTS ---
@@ -164,33 +161,7 @@ export class ReportService {
         return this.mapReportToDto(updatedReport);
     }
 
-    async updateReportStatus(id: number, statusId: number): Promise<ReportDto> {
-        if (!id || id <= 0) {
-            throw new BadRequestException("ID de reporte inválido");
-        }
-
-        if (!statusId || statusId <= 0) {
-            throw new BadRequestException("ID de status inválido");
-        }
-
-        // Verificar que el reporte existe
-        const existingReport = await this.reportRepository.findById(id);
-        if (!existingReport) {
-            throw new NotFoundException("Reporte no encontrado");
-        }
-
-        // Verificar que el status existe
-        const status = await this.reportRepository.getReportStatusById(statusId);
-        if (!status) {
-            throw new BadRequestException("Status inválido");
-        }
-
-        await this.reportRepository.updateReportStatus(id, statusId);
-
-        // Retornar el reporte actualizado
-        const updatedReport = await this.reportRepository.findById(id);
-        return this.mapReportToDto(updatedReport);
-    }
+    
 
     // --- VOTING ---
 
