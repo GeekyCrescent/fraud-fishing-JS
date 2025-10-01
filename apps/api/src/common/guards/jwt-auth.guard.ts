@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Request } from "express";
 import { TokenService } from "src/auth/tokens.service";
 import { AuthenticatedRequest } from "../interfaces/authenticated-request";
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
     constructor(private readonly tokenService: TokenService) {}
@@ -14,9 +15,7 @@ export class JwtAuthGuard implements CanActivate {
         try{
             const payload = await this.tokenService.verifyAccess(token);
             (request as AuthenticatedRequest).user={
-                userId: payload.sub,
-                profile:payload.profile,
-                raw:payload
+                profile : payload.profile,
             }
             return true;
         }catch{
