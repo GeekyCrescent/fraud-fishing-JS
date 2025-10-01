@@ -4,11 +4,13 @@ import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
 import { AuthModule } from "../auth/auth.module";
 import { ReportModule } from "src/reports/report.module";
+import { NotificationModule } from "src/notifications/notification.module";
+import { UserNotificationController } from "./user-notification.controller";
 
 @Module({
-  imports: [AuthModule, ReportModule],
-  controllers: [UserController],
+  imports: [AuthModule, ReportModule, NotificationModule],
+  controllers: [UserController, UserNotificationController],
   providers: [UserRepository, UserService],
-  exports: [UserService]
+  exports: [UserService, UserRepository]
 })
 export class UserModule {}

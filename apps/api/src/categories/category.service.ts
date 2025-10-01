@@ -1,25 +1,109 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Category, CategoryRepository } from "./category.repository";
-
-export type CategoryDto = {
-    id: number;
-    name: string;
-    description: string; 
-}
+import { CategoryDto, CreateCategoryDto, UpdateCategoryDto } from "./dto/category.dto";
 
 @Injectable()
 export class CategoryService {
     constructor(private readonly categoryRepository: CategoryRepository) {}
 
-    async createCategory(name: string, description: string): Promise<CategoryDto | void> {
-        return this.categoryRepository.createCategory(name, description);
-    }
+    // --- GETS ---
 
     async findAllCategories(): Promise<CategoryDto[]> {
-        return this.categoryRepository.findAllCategories();
+        const categories = await this.categoryRepository.findAllCategories();
+        return categories.map(category => ({
+            id: category.id,
+            name: category.name,
+            description: category.description
+        }));
     }
 
-    async deleteCategory(id: number): Promise<CategoryDto | void> {
-        return this.categoryRepository.deleteCategory(id);
+    async findById(id: number): Promise<CategoryDto> {
+        if (!id || id <= 0) {
+            throw new BadRequestException("ID de categoría inválido");
+        }
+        const category = await this.categoryRepository.findById(id);
+        if (!category) {
+            throw new NotFoundException("Categoría no encontrada");
+        }
+        return {
+            id: category.id,
+            name: category.name,
+            description: category.description
+        };
+    }
+
+    async findByName(name: string): Promise<CategoryDto> {
+        if (!name || name.trim() === "") {
+            throw new BadRequestException("Nombre de categoría es requerido");
+        }
+        const category = await this.categoryRepository.findByName(name.trim());
+        if (!category) {
+            throw new NotFoundException("Categoría no encontrada");
+        }
+        return {
+            id: category.id,
+            name: category.name,
+            description: category.description
+        };
+    }
+
+    // --- POSTS ---
+
+    async createCategory(createCategoryDto: CreateCategoryDto): Promise<CategoryDto> {
+        const { name, description } = createCategoryDto;
+                const existingCategory = await this.categoryRepository.findByName(name);
+        if (existingCategory) {
+            throw new BadRequestException("Ya existe una categoría con ese nombre");
+        }
+        await this.categoryRepository.createCategory(name, description);
+        const newCategory = await this.categoryRepository.findByName(name);
+        return {
+            id: newCategory.id,
+            name: newCategory.name,
+            description: newCategory.description
+        };
+    }
+
+    // --- PUTS ---
+
+    async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto): Promise<CategoryDto> {
+        if (!id || id <= 0) {
+            throw new BadRequestException("ID de categoría inválido");
+        }
+
+        const existingCategory = await this.categoryRepository.findById(id);
+        if (!existingCategory) {
+            throw new NotFoundException("Categoría no encontrada");
+        }
+        const { name, description } = updateCategoryDto;
+
+        if (name && name !== existingCategory.name) {
+            const categoryWithSameName = await this.categoryRepository.findByName(name);
+            if (categoryWithSameName) {
+                throw new BadRequestException("Ya existe una categoría con ese nombre");
+            }
+        }
+
+        const finalName = name || existingCategory.name;
+        const finalDescription = description || existingCategory.description;
+        await this.categoryRepository.updateCategory(id, finalName, finalDescription);
+        return {
+            id: existingCategory.id,
+            name: finalName,
+            description: finalDescription
+        };
+    }
+
+    // --- DELETES ---
+
+    async deleteCategory(id: number): Promise<void> {
+        if (!id || id <= 0) {
+            throw new BadRequestException("ID de categoría inválido");
+        }
+        const category = await this.categoryRepository.findById(id);
+        if (!category) {
+            throw new NotFoundException("Categoría no encontrada");
+        }
+        await this.categoryRepository.deleteCategory(id);
     }
 }
