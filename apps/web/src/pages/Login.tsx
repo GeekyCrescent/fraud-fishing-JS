@@ -31,7 +31,7 @@ export default function Login({ setUser }: LoginProps) {
       const data = await response.json();
 
       // Solo permitir admins
-      if (data.role !== "admin") {
+      if (!data.is_admin || data.is_admin === 0 || data.is_admin === "0" || data.is_admin === false) {
         setError("Solo los administradores pueden ingresar.");
         return;
       }
