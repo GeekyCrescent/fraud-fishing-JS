@@ -22,6 +22,15 @@ export class AdminController {
         return this.adminService.registerAdmin(adminDto.email, adminDto.name, adminDto.password);
     }
 
+    @Post("register-super")
+    @ApiOperation({ summary: 'Registrar un nuevo superadministrador' }) 
+    @ApiBody({ type: CreateAdminDto })
+    @ApiResponse({ status: 201, description: "Superadministrador registrado exitosamente", type: UserDto }) 
+    @ApiResponse({ status: 400, description: "El correo electrónico ya está en uso" })
+    async registerSuperAdmin(@Body() adminDto: CreateAdminDto): Promise<UserDto | void> {
+        return this.adminService.registerSuperAdmin(adminDto.email, adminDto.name, adminDto.password);
+    }
+
     // ========== | USER Endpoints | ==========
 
     //  GETs

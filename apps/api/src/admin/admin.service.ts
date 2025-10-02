@@ -24,6 +24,16 @@ export class AdminService {
         return this.userRepository.registerUser(email, name, hashedPassword, salt, true);
     }
 
+    async registerSuperAdmin(email: string, name: string, password: string): Promise<UserDto | void> {
+        const existingAdmin = await this.userRepository.findByEmail(email);
+        if (existingAdmin) {
+            throw new Error('El correo electrónico ya está en uso');
+        }
+        const salt = "salt";
+        const hashedPassword = sha256(password);
+        return this.userRepository.registerSuperAdmin(email, name, hashedPassword, salt);
+    }
+
     // ========== | USER Endpoints | ==========
 
     //  GETs
@@ -120,4 +130,5 @@ export class AdminService {
         
         return { email: user.email, name: user.name };
     }
+
 }

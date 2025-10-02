@@ -5,12 +5,8 @@ import {
   FiEye,
   FiMoreHorizontal,
   FiSearch,
-  FiThumbsUp,
-  FiThumbsDown,
   FiFlag,
 } from "react-icons/fi";
-
-type VoteType = "up" | "down";
 
 interface Report {
   id: number;
@@ -18,11 +14,11 @@ interface Report {
   title?: string;
   description?: string;
   categoryId?: number;
-  statusId?: number;        // para /reports/:id/status
-  vote_count?: number;      // “popularidad”
-  comment_count?: number;   // cantidad de comentarios
-  created_at?: string;
-  reporterName?: string;    // opcional si lo incluyes en tu DTO
+  statusId?: number;        
+  voteCount?: number;      
+  commentCount?: number;   
+  createdAt?: string;
+  reporterName?: string;  
 }
 
 interface ReportForCreate {
@@ -58,7 +54,7 @@ export default function CrudReportes() {
   const fetchReportes = async () => {
     setError("");
     try {
-      const res = await fetch(`${API}/reports`);
+      const res = await fetch(`${API}/reports/active`);
       if (!res.ok) throw new Error();
       const data: Report[] = await res.json();
       setReportes(data ?? []);
@@ -79,9 +75,9 @@ export default function CrudReportes() {
     let t = 0, pop = 0, cc = 0, d = 0;
     for (const r of reportes) {
       t++;
-      if ((r.vote_count ?? 0) > 0) pop++;
-      if ((r.comment_count ?? 0) > 0) cc++;
-      if (r.created_at && (now - new Date(r.created_at).getTime() <= oneDay)) d++;
+      if ((r.voteCount ?? 0) > 0) pop++;
+      if ((r.commentCount ?? 0) > 0) cc++;
+      if (r.createdAt && (now - new Date(r.createdAt).getTime() <= oneDay)) d++;
     }
     return { total: t, populares: pop, conComentarios: cc, hoy: d };
   }, [reportes]);
@@ -105,7 +101,7 @@ export default function CrudReportes() {
       const va = a[sortKey] as any;
       const vb = b[sortKey] as any;
 
-      if (sortKey === "created_at") {
+      if (sortKey === "createdAt") {
         const da = va ? new Date(va).getTime() : 0;
         const db = vb ? new Date(vb).getTime() : 0;
         return sortDir === "asc" ? da - db : db - da;
@@ -173,42 +169,6 @@ export default function CrudReportes() {
     }
   };
 
-  // ===== Votar (PUT /reports/:id/vote) =====
-  const handleVote = async (id: number, voteType: VoteType) => {
-    try {
-      const res = await fetch(`${API}/reports/${id}/vote`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders(),
-        },
-        body: JSON.stringify({ voteType }),
-      });
-      if (!res.ok) throw new Error();
-      await fetchReportes();
-    } catch {
-      setError("No se pudo registrar el voto");
-    }
-  };
-
-  // ===== Cambiar status (PUT /reports/:id/status) =====
-  const handleStatus = async (id: number, statusId: number) => {
-    try {
-      const res = await fetch(`${API}/reports/${id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders(),
-        },
-        body: JSON.stringify({ statusId }),
-      });
-      if (!res.ok) throw new Error();
-      await fetchReportes();
-    } catch {
-      setError("No se pudo actualizar el status");
-    }
-  };
-
   // ===== Siblings (GET /reports/siblings?url=...) =====
   const fetchSiblings = async (url: string) => {
     setSiblings(null);
@@ -271,10 +231,9 @@ export default function CrudReportes() {
               <tr className="text-gray-500 text-xs uppercase">
                 <Th onClick={() => toggleSort("url")} active={sortKey === "url"} dir={sortDir}>URL</Th>
                 <Th onClick={() => toggleSort("title")} active={sortKey === "title"} dir={sortDir}>Título</Th>
-                <Th onClick={() => toggleSort("vote_count")} active={sortKey === "vote_count"} dir={sortDir}>Votos</Th>
-                <Th onClick={() => toggleSort("comment_count")} active={sortKey === "comment_count"} dir={sortDir}>Comentarios</Th>
-                <Th onClick={() => toggleSort("statusId")} active={sortKey === "statusId"} dir={sortDir}>Status</Th>
-                <Th onClick={() => toggleSort("created_at")} active={sortKey === "created_at"} dir={sortDir}>Creado</Th>
+                <Th onClick={() => toggleSort("voteCount")} active={sortKey === "voteCount"} dir={sortDir}>Votos</Th>
+                <Th onClick={() => toggleSort("commentCount")} active={sortKey === "commentCount"} dir={sortDir}>Comentarios</Th>
+                <Th onClick={() => toggleSort("createdAt")} active={sortKey === "createdAt"} dir={sortDir}>Creado</Th>
                 <th className="py-3 pr-4 text-right w-56">Acciones</th>
               </tr>
             </thead>
@@ -288,8 +247,6 @@ export default function CrudReportes() {
                     await fetchSiblings(rep.url);
                   }}
                   onDelete={() => handleEliminar(rep.id)}
-                  onVote={(type) => handleVote(rep.id, type)}
-                  onStatus={(sid) => handleStatus(rep.id, sid)}
                 />
               ))}
               {pageItems.length === 0 && (
@@ -396,7 +353,7 @@ export default function CrudReportes() {
                     <p className="text-gray-700 mt-2">{detalle.description}</p>
                   )}
                   <div className="text-xs text-gray-500 mt-2">
-                    Creado: {detalle.created_at ? new Date(detalle.created_at).toLocaleString() : "—"}
+                    Creado: {detalle.createdAt ? new Date(detalle.createdAt).toLocaleString() : "—"}
                   </div>
                 </div>
                 <button
@@ -407,52 +364,15 @@ export default function CrudReportes() {
                 </button>
               </div>
 
-              {/* Acciones rápidas */}
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                <button
-                  className="inline-flex items-center gap-2 px-3 py-2 border rounded hover:bg-teal-50"
-                  onClick={() => handleVote(detalle.id, "up")}
-                >
-                  <FiThumbsUp /> Votar
-                </button>
-                <button
-                  className="inline-flex items-center gap-2 px-3 py-2 border rounded hover:bg-teal-50"
-                  onClick={() => handleVote(detalle.id, "down")}
-                >
-                  <FiThumbsDown /> Quitar voto
-                </button>
-
-                <div className="ml-auto flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Status:</span>
-                  <select
-                    className="border rounded px-2 py-1"
-                    value={detalle.statusId ?? 0}
-                    onChange={async (e) => {
-                      const sid = Number(e.target.value);
-                      await handleStatus(detalle.id, sid);
-                      // sincroniza local
-                      setDetalle((d) => (d ? { ...d, statusId: sid } : d));
-                    }}
-                  >
-                    {/* Ajusta los IDs reales de tu tabla de status */}
-                    <option value={0}>—</option>
-                    <option value={1}>Pendiente</option>
-                    <option value={2}>En progreso</option>
-                    <option value={3}>Resuelto</option>
-                    <option value={4}>Rechazado</option>
-                  </select>
-                </div>
-              </div>
-
               {/* Métricas */}
               <div className="grid grid-cols-3 gap-3 my-5 text-center">
                 <div className="rounded-lg border p-3">
                   <div className="text-xs text-gray-500">Votos</div>
-                  <div className="text-xl font-semibold">{detalle.vote_count ?? 0}</div>
+                  <div className="text-xl font-semibold">{detalle.voteCount ?? 0}</div>
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-xs text-gray-500">Comentarios</div>
-                  <div className="text-xl font-semibold">{detalle.comment_count ?? 0}</div>
+                  <div className="text-xl font-semibold">{detalle.commentCount ?? 0}</div>
                 </div>
                 <div className="rounded-lg border p-3">
                   <div className="text-xs text-gray-500">Status</div>
@@ -483,12 +403,12 @@ export default function CrudReportes() {
                               {s.title || "(sin título)"} · #{s.id}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {s.created_at ? new Date(s.created_at).toLocaleString() : "—"}
+                              {s.createdAt ? new Date(s.createdAt).toLocaleString() : "—"}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 text-sm">
-                            <span>👍 {s.vote_count ?? 0}</span>
-                            <span>💬 {s.comment_count ?? 0}</span>
+                            <span>👍 {s.voteCount ?? 0}</span>
+                            <span>💬 {s.commentCount ?? 0}</span>
                             <button
                               className="px-3 py-1 border rounded hover:bg-white"
                               onClick={() => setDetalle(s)}
@@ -566,14 +486,10 @@ function RowReporte({
   rep,
   onView,
   onDelete,
-  onVote,
-  onStatus,
-}: {
+}: {  
   rep: Report;
   onView: () => void;
   onDelete: () => void;
-  onVote: (t: VoteType) => void;
-  onStatus: (sid: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -596,10 +512,10 @@ function RowReporte({
         </a>
       </td>
       <td className="py-4">{rep.title ?? "—"}</td>
-      <td className="py-4">{rep.vote_count ?? 0}</td>
-      <td className="py-4">{rep.comment_count ?? 0}</td>
+      <td className="py-4">{rep.voteCount ?? 0}</td>
+      <td className="py-4">{rep.commentCount ?? 0}</td>
       <td className="py-4">{rep.statusId ?? "—"}</td>
-      <td className="py-4">{rep.created_at ? new Date(rep.created_at).toLocaleString() : "—"}</td>
+      <td className="py-4">{rep.createdAt ? new Date(rep.createdAt).toLocaleString() : "—"}</td>
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
           <button className="p-2 rounded hover:bg-teal-50" onClick={() => setOpen((v) => !v)} aria-label="Más acciones">
@@ -616,40 +532,9 @@ function RowReporte({
               >
                 <FiEye /> Ver
               </button>
-              <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
-                onClick={() => {
-                  onVote("up");
-                  setOpen(false);
-                }}
-              >
-                <FiThumbsUp /> Votar
-              </button>
-              <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
-                onClick={() => {
-                  onVote("down");
-                  setOpen(false);
-                }}
-              >
-                <FiThumbsDown /> Quitar voto
-              </button>
+
               <div className="border-t my-1" />
               {/* Cambiar status rápido (IDs de ejemplo) */}
-              <div className="px-3 py-2 text-xs text-gray-500">Cambiar status</div>
-              <div className="flex items-center gap-2 px-3 pb-2">
-                <select
-                  className="border rounded px-2 py-1 flex-1"
-                  defaultValue={rep.statusId ?? 0}
-                  onChange={(e) => onStatus(Number(e.target.value))}
-                >
-                  <option value={0}>—</option>
-                  <option value={1}>Pendiente</option>
-                  <option value={2}>En progreso</option>
-                  <option value={3}>Resuelto</option>
-                  <option value={4}>Rechazado</option>
-                </select>
-              </div>
               <button
                 className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
                 onClick={() => {

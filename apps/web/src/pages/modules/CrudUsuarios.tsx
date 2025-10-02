@@ -12,6 +12,7 @@ interface UsuarioStats {
   name: string;
   email: string;
   is_admin: boolean;
+  is_super_admin: boolean;
   created_at: string; // ISO
   reportCount: number;
   commentCount: number;
