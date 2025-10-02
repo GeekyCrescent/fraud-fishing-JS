@@ -38,6 +38,13 @@ export class CategoryController {
         return this.categoryService.findByName(name);
     }
 
+    @Get('top/:limit')
+    @ApiOperation({ summary: 'Obtener las categorías más usadas' })
+    @ApiParam({ name: 'limit', description: 'Número máximo de categorías a retornar', type: 'number' })
+    @ApiResponse({ status: 200, description: "Lista de categorías obtenida exitosamente", type: [CategoryDto] })
+    async getTopCategories(@Param('limit') limit: string): Promise<{ name: string; usage_count: number }[]> {
+        return this.categoryService.findTopCategories(Number(limit));
+    }
 
     // ===== POSTS =====
 

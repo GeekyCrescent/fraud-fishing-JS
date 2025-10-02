@@ -33,6 +33,19 @@ export class CategoryRepository {
         return result[0];
     }
 
+    async findTopCategories(limit: number): Promise<{ name: string; usage_count: number }[]> {
+        const sql = `
+            SELECT c.name, COUNT(r.id) AS usage_count
+            FROM category c
+            LEFT JOIN report r ON c.id = r.category_id
+            GROUP BY c.id
+            ORDER BY usage_count DESC
+            LIMIT ?
+        `;
+        const [rows] = await this.dbService.getPool().query(sql, [limit]);
+        return rows as { name: string; usage_count: number }[];
+    }
+
     // --- POSTS ---
 
     async createCategory(name: string, description: string): Promise<void> {

@@ -5,6 +5,17 @@ interface LoginProps {
   setUser: (user: { correo: string }) => void;
 }
 
+interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    is_admin: boolean;
+  };
+}
+
 export default function Login({ setUser }: LoginProps) {
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
@@ -15,34 +26,52 @@ export default function Login({ setUser }: LoginProps) {
     e.preventDefault();
     setError("");
 
+    const payload = { email: correo, password: contrasena };
+    console.log("Enviando payload:", payload); // 1. Verifica lo que se envía
+
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: correo, password: contrasena }),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || "Credenciales incorrectas");
+      console.log("Respuesta del servidor:", res); // 2. Verifica la respuesta completa
+
+      if (!res.ok) {
+        let msg = "Credenciales incorrectas";
+        try {
+          const err = await res.json();
+          console.error("Error en la respuesta (JSON):", err); // 3. Verifica el error del JSON
+          msg = err.message ?? msg;
+        } catch (jsonError) {
+          console.error("No se pudo parsear el JSON de error:", jsonError);
+        }
+        setError(msg);
         return;
       }
 
-      const data = await response.json();
+      const data: LoginResponse = await res.json();
+      console.log("Datos recibidos (éxito):", data); // 4. Verifica los datos si todo va bien
 
-      // Solo permitir admins
-      if (!data.is_admin || data.is_admin === 0 || data.is_admin === "0" || data.is_admin === false) {
+      // Solo admins
+      if (!data.user.is_admin) {
         setError("Solo los administradores pueden ingresar.");
         return;
       }
-
-      setUser({ correo });
       localStorage.setItem("accessToken", data.accessToken);
-      navigate("dashboard");
+      localStorage.setItem("refreshToken", data.refreshToken);
+
+      // Guarda usuario en tu estado global/local
+      setUser({ correo: data.user.email});
+
+      navigate("/dashboard");
     } catch (err) {
+      console.error("Error en el bloque catch (fetch falló):", err); // 5. Verifica el error de conexión
       setError("Error de conexión");
     }
   };
+
 
   return (
     <div className="flex h-screen font-sans">
