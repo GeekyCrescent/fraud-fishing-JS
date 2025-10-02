@@ -23,6 +23,7 @@ export default function CrudUsuarios() {
   const [detalle, setDetalle] = useState<UsuarioStats | null>(null);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [tipoNuevo, setTipoNuevo] = useState<"usuario" | "admin">("usuario");
   const [nuevo, setNuevo] = useState({ name: "", email: "", password: "" });
 
   const [filtro, setFiltro] = useState("");
@@ -169,10 +170,23 @@ export default function CrudUsuarios() {
             </div>
             <button
               className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+              setShowForm(true)
+              setTipoNuevo("usuario");
+              }}
             >
               <FiPlus className="text-[18px]" />
               Agregar usuario
+            </button>
+                        <button
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              onClick={() =>{
+              setShowForm(true)
+              setTipoNuevo("admin");
+              }}
+            >
+              <FiPlus className="text-[18px]" />
+              Agregar administrador
             </button>
           </div>
         </div>
@@ -208,10 +222,10 @@ export default function CrudUsuarios() {
         )}
 
         {/* Tabla */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+        <div className="w-full text-sm text-left text-gray-600">
           <table className="w-full min-w-[860px]">
             <thead>
-              <tr className="text-gray-500 text-xs uppercase">
+              <tr className="text-gray-600">
                 <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>Nombre</Th>
                 <Th onClick={() => toggleSort("email")} active={sortKey === "email"} dir={sortDir}>Email</Th>
                 <Th onClick={() => toggleSort("is_admin")} active={sortKey === "is_admin"} dir={sortDir}>Rol</Th>
@@ -219,10 +233,10 @@ export default function CrudUsuarios() {
                 <Th onClick={() => toggleSort("commentCount")} active={sortKey === "commentCount"} dir={sortDir}>Comments</Th>
                 <Th onClick={() => toggleSort("likeCount")} active={sortKey === "likeCount"} dir={sortDir}>Likes</Th>
                 <Th onClick={() => toggleSort("created_at")} active={sortKey === "created_at"} dir={sortDir}>Created</Th>
-                <th className="py-3 pr-4 text-right w-20">Acciones</th>
+                <th className="py-3 pr-4 text-right w-0">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-300">
               {pageItems.map((user) => (
                 <RowUsuario
                   key={user.id}
@@ -279,7 +293,7 @@ export default function CrudUsuarios() {
               onSubmit={handleCrear}
               className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md"
             >
-              <h3 className="text-lg font-semibold mb-4">Agregar usuario</h3>
+              <h3 className="text-lg font-semibold mb-4">{tipoNuevo === "usuario" ? "Agregar usuario" : "Agregar administrador"}</h3>
               <input
                 className="border p-2 rounded w-full mb-3"
                 placeholder="Nombre"
