@@ -10,10 +10,31 @@ export class ReportService {
     constructor(
         private readonly reportRepository: ReportRepository,
         private readonly commentService: CommentService,
-        private readonly notificationService: NotificationService // ← Agregar
+        private readonly notificationService: NotificationService 
     ) {}
 
     // --- GETS ---
+
+    async findPrimaryByUrl(rawUrl: string): Promise<ReportDto> {
+        const url = (rawUrl ?? "").trim();
+        if (!url) throw new BadRequestException("URL es requerida");
+
+        const report = await this.reportRepository.findPrimaryByUrl(url);
+        if (!report) throw new NotFoundException("No hay reportes para esa URL");
+
+        return this.mapReportToDto(report);
+    }
+
+  // NEW: hermanos por URL
+    async findSiblingsByUrl(rawUrl: string): Promise<ReportDto[]> {
+        const url = (rawUrl ?? "").trim();
+        if (!url) throw new BadRequestException("URL es requerida");
+
+        const reports = await this.reportRepository.findSiblingsByUrl(url);
+        if (!reports || reports.length === 0) return [];
+
+        return reports.map(r => this.mapReportToDto(r));
+    }
 
     async findAllReports(): Promise<ReportDto[]> {
         const reports = await this.reportRepository.findAllReports();

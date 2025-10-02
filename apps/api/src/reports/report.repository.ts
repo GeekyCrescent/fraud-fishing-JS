@@ -27,6 +27,28 @@ export class ReportRepository {
 
     // --- GETS ---
 
+    async findPrimaryByUrl(url: string): Promise<Report | null> {
+        const sql = `
+        SELECT * FROM report
+        WHERE url = ? AND status_id = 3
+        ORDER BY vote_count DESC, created_at ASC
+        LIMIT 1
+        `;
+        const [rows] = await this.dbService.getPool().query(sql, [url]);
+        const result = rows as Report[];
+        return result[0] ?? null;
+    }
+
+    async findSiblingsByUrl(url: string): Promise<Report[]> {
+        const sql = `
+        SELECT * FROM report
+        WHERE url = ? AND status_id = 3
+        ORDER BY vote_count DESC, created_at ASC
+        `;
+        const [rows] = await this.dbService.getPool().query(sql, [url]);
+        return rows as Report[];
+    }
+
     async findAllReports(): Promise<Report[]> {
         const sql = `SELECT * FROM report`;
         const [rows] = await this.dbService.getPool().query(sql);

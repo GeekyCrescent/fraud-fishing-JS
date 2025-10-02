@@ -47,6 +47,17 @@ export class CategoryService {
         };
     }
 
+    async findTopCategories(limit: number): Promise<{ name: string; usage_count: number }[]> {
+        if (!limit || limit <= 0) {
+            throw new BadRequestException("Límite inválido");
+        }
+        const categories = await this.categoryRepository.findTopCategories(limit);
+        return categories.map(category => ({
+            name: category.name,
+            usage_count: category.usage_count
+        }));
+    }
+
     // --- POSTS ---
 
     async createCategory(createCategoryDto: CreateCategoryDto): Promise<CategoryDto> {

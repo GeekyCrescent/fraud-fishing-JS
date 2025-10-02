@@ -13,7 +13,7 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 h-screen flex flex-col bg-white border-r-1 border-teal-500">
+      <aside className="w-64 h-screen flex flex-col bg-white border-r-2 border-teal-500">
         {/* Logo */}
         <div className="p-6 text-2xl font-bold text-teal-700">
           Fraud<span className="text-black">Fishing</span>
