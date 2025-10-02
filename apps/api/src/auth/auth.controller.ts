@@ -37,7 +37,12 @@ export class AuthController {
             return { 
                 accessToken, 
                 refreshToken, 
-                is_admin: user.is_admin 
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    is_admin: user.is_admin
+                }
             };
         } catch (error) {
             if (error instanceof NotFoundException || error instanceof UnauthorizedException) {

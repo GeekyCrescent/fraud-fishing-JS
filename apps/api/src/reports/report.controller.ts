@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards, Get, Put, Param, Delete } from "@nestjs/common";
+import { Body, Controller, Post, Req, UseGuards, Get, Put, Param, Delete, Query } from "@nestjs/common";
 import { ReportService } from "./report.service";
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
@@ -20,9 +20,9 @@ export class ReportController {
     @Post()
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Crear un nuevo reporte o agregar comentario si la URL ya existe' })
+    @ApiOperation({ summary: 'Crear un nuevo reporte' })
     @ApiBody({ type: CreateReportDto })
-    @ApiResponse({ status: 201, description: "Reporte creado exitosamente o comentario agregado", type: ReportDto })
+    @ApiResponse({ status: 201, description: "Reporte creado exitosamente", type: ReportDto })
     @ApiResponse({ status: 400, description: "Datos inválidos" })
     @ApiResponse({ status: 401, description: "Token inválido" })
     @ApiResponse({ status: 500, description: "Error interno del servidor" })
@@ -44,6 +44,21 @@ export class ReportController {
     @ApiResponse({ status: 500, description: "Error interno del servidor" })
     async getAllReports(): Promise<ReportDto[]> {
         return this.reportService.findAllReports();
+    }
+
+    @Get("primary")
+    @ApiOperation({ summary: "Obtener el reporte principal de una URL (más votado)" })
+    @ApiResponse({ status: 200, description: "Reporte principal", type: ReportDto })
+    async getPrimaryByUrl(@Query("url") url: string): Promise<ReportDto> {
+        return this.reportService.findPrimaryByUrl(url);
+    }
+
+    // NEW: hermanos por URL (incluye al principal)
+    @Get("siblings")
+    @ApiOperation({ summary: "Listar todos los reportes con la misma URL" })
+    @ApiResponse({ status: 200, description: "Lista de reportes de la misma URL", type: [ReportDto] })
+    async getSiblingsByUrl(@Query("url") url: string): Promise<ReportDto[]> {
+        return this.reportService.findSiblingsByUrl(url);
     }
 
     @Get('with-status')

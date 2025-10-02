@@ -10,11 +10,15 @@ import CrudCategorias from "./pages/modules/CrudCategorias";
 import CrudAdmins from "./pages/modules/CrudAdmins";
 import ReportValidation from "./pages/modules/ReportValidation";
 
+import { useState } from "react";
+
 function App() {
+  const [user, setUser] = useState<{ correo: string } | null>(null);
+
   return (
     <Routes>
       {/* Login */}
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<Login setUser={setUser} />} />
 
       {/* Dashboard con sidebar */}
       <Route path="/dashboard" element={<Dashboard />}>
