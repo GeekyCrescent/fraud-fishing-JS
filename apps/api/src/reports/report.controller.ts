@@ -46,6 +46,14 @@ export class ReportController {
         return this.reportService.findAllReports();
     }
 
+    @Get('active')
+    @ApiOperation({ summary: 'Obtener todos los reportes activos' })
+    @ApiResponse({ status: 200, description: "Lista de reportes activos obtenida exitosamente", type: [ReportDto] })
+    @ApiResponse({ status: 500, description: "Error interno del servidor" })
+    async getAllActiveReports(): Promise<ReportDto[]> {
+        return this.reportService.findAllActiveReports();
+    }
+
     @Get("primary")
     @ApiOperation({ summary: "Obtener el reporte principal de una URL (más votado)" })
     @ApiResponse({ status: 200, description: "Reporte principal", type: ReportDto })

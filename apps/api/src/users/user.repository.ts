@@ -77,4 +77,12 @@ export class UserRepository {
         `;
         await this.dbService.getPool().query(sql, [name, email, hashedPassword, salt, isAdmin]);
     }
+
+    async registerSuperAdmin(email: string, name: string, hashedPassword: string, salt: string): Promise<void> {
+        const sql = `
+            INSERT INTO user (name, email, password_hash, salt, is_admin, is_super_admin) 
+            VALUES (?, ?, ?, ?, TRUE, TRUE)
+        `;
+        await this.dbService.getPool().query(sql, [name, email, hashedPassword, salt]);
+    }
 }

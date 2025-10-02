@@ -41,6 +41,11 @@ export class ReportService {
         return reports.map(report => this.mapReportToDto(report));
     }
 
+    async findAllActiveReports(): Promise<ReportDto[]> {
+        const reports = await this.reportRepository.findAllActiveReports();
+        return reports.map(report => this.mapReportToDto(report));
+    }
+
     async findAllReportsWithStatus(): Promise<ReportDto[]> {
         const reports = await this.reportRepository.findAllReportsWithStatus();
         return reports.map(report => this.mapReportWithStatusToDto(report));

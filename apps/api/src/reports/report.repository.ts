@@ -55,6 +55,12 @@ export class ReportRepository {
         return rows as Report[];
     }
 
+    async findAllActiveReports(): Promise<Report[]> {
+        const sql = `SELECT * FROM report WHERE status_id = 3`;
+        const [rows] = await this.dbService.getPool().query(sql);
+        return rows as Report[];
+    }
+
     // Obtener reportes con nombre del status (JOIN)
     async findAllReportsWithStatus(): Promise<ReportWithStatus[]> {
         const sql = `
