@@ -195,7 +195,7 @@ export default function CrudUsuarios() {
               />
             </div>
             <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
               onClick={() => {
               setShowForm(true)
               setTipoNuevo("usuario");
@@ -205,7 +205,7 @@ export default function CrudUsuarios() {
               Agregar usuario
             </button>
                         <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
               onClick={() =>{
               setShowForm(true)
               setTipoNuevo("admin");
@@ -288,7 +288,7 @@ export default function CrudUsuarios() {
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select
-                className="border border-gray-300 rounded-md px-2 py-1 bg-white"
+                className="border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
                 value={pageSize}
                 onChange={(e) => {
                   const v = Number(e.target.value);
@@ -321,14 +321,14 @@ export default function CrudUsuarios() {
             >
               <h3 className="text-lg font-semibold mb-4">{tipoNuevo === "usuario" ? "Agregar usuario" : "Agregar administrador"}</h3>
               <input
-                className="border p-2 rounded w-full mb-3"
+                className="bg-gray-50 p-2 rounded w-full mb-3"
                 placeholder="Nombre"
                 value={nuevo.name}
                 onChange={(e) => setNuevo((n) => ({ ...n, name: e.target.value }))}
                 required
               />
               <input
-                className="border p-2 rounded w-full mb-3"
+                className="bg-gray-50 p-2 rounded w-full mb-3"
                 placeholder="Email"
                 type="email"
                 value={nuevo.email}
@@ -336,7 +336,7 @@ export default function CrudUsuarios() {
                 required
               />
               <input
-                className="border p-2 rounded w-full mb-4"
+                className="bg-gray-50 p-2 rounded w-full mb-4"
                 placeholder="Contraseña"
                 type="password"
                 value={nuevo.password}
@@ -344,10 +344,10 @@ export default function CrudUsuarios() {
                 required
               />
               <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 bg-gray-100 rounded" onClick={() => setShowForm(false)}>
+                <button type="button" className="px-4 py-2 bg-gray-100 hover:bg-gray-300 rounded cursor-pointer" onClick={() => setShowForm(false)}>
                   Cancelar
                 </button>
-                <button type="submit" className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded">
+                <button type="submit" className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded cursor-pointer">
                   Crear
                 </button>
               </div>
@@ -415,7 +415,7 @@ function KpiCard({
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>
@@ -487,16 +487,16 @@ function RowUsuario({
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
           <button
-            className="p-2 rounded hover:bg-teal-50"
+            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
             onClick={() => setOpen((v) => !v)}
             aria-label="Más acciones"
           >
             <FiMoreHorizontal />
           </button>
           {open && (
-            <div className="absolute right-0 top-9 w-40 bg-white border rounded shadow">
+            <div className="absolute rounded right-0 top-9 z-50 w-40 bg-white bg-white shadow-lg rounded shadow">
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   onView();
                   setOpen(false);
@@ -505,7 +505,7 @@ function RowUsuario({
                 <FiEye /> Ver
               </button>
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
+                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 cursor-pointer"
                 onClick={() => {
                   onDelete();
                   setOpen(false);
@@ -551,7 +551,7 @@ function Pagination({
   return (
     <div className="flex items-center gap-2">
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
         onClick={() => onChange(Math.max(1, page - 1))}
         disabled={page <= 1}
       >
@@ -577,7 +577,7 @@ function Pagination({
         )
       )}
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
         onClick={() => onChange(Math.min(totalPages, page + 1))}
         disabled={page >= totalPages}
       >

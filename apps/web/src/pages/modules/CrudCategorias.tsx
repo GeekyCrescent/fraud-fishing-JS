@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import {
   FiPlus,
   FiTrash2,
@@ -178,7 +178,7 @@ export default function CrudCategorias() {
               />
             </div>
             <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              className="cursor-pointer inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
               onClick={() => setShowForm(true)}
             >
               <FiPlus className="text-[18px]" />
@@ -217,53 +217,23 @@ export default function CrudCategorias() {
         )}
 
         {/* Tabla */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+        <div className="w-full text-sm text-left text-gray-600">
           <table className="w-full min-w-[760px]">
             <thead>
-              <tr className="text-gray-500 text-xs uppercase">
-                <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>
-                  Nombre
-                </Th>
-                <Th onClick={() => toggleSort("description")} active={sortKey === "description"} dir={sortDir}>
-                  Descripción
-                </Th>
-                <Th onClick={() => toggleSort("created_at")} active={sortKey === "created_at"} dir={sortDir}>
-                  Created
-                </Th>
-                <th className="py-3 pr-4 text-right w-20">Acciones</th>
+              <tr className="text-gray-600">
+                <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>Nombre</Th>
+                <Th onClick={() => toggleSort("description")} active={sortKey === "description"} dir={sortDir}>Descripción</Th>
+                <th className="py-3 pr-4 text-right w-0">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-300">
               {pageItems.map((cat) => (
-                <tr
+                <RowCategoria
                   key={cat.id}
-                  className="last:border-0 hover:bg-gray-50 transition"
-                >
-                  <td className="py-6 px-4 font-medium text-gray-900">
-                    {cat.name}
-                  </td>
-                  <td className="py-3 px-4 text-gray-700">{cat.description}</td>
-                  <td className="py-3 px-4 flex justify-end gap-2">
-                    <button
-                      onClick={() => setDetalle(cat)}
-                      className="px-3 py-1 text-xs font-medium rounded-md bg-green-100 text-green-700 hover:bg-green-200"
-                    >
-                      Ver
-                    </button>
-                    <button
-                      onClick={() => setEditando(cat)}
-                      className="px-3 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(cat.id)}
-                      className="px-3 py-1 text-xs font-medium rounded-md bg-red-100 text-red-700 hover:bg-red-200"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
+                  cat={cat}
+                  onView={() => setDetalle(cat)}
+                  onDelete={() => handleEliminar(cat.id)}
+                />
               ))}
               {pageItems.length === 0 && (
                 <tr>
@@ -425,7 +395,7 @@ function KpiCard({
 
   return (
     <div
-      className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer flex flex-col justify-between`}
+      className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg flex flex-col justify-between`}
     >
       <div className="text-sm opacity-90">{title}</div>
       <div className="mt-2">
@@ -494,13 +464,10 @@ function RowCategoria({
       <td className="py-4 pl-4">
         <div className="text-lg font-semibold">{cat.name}</div>
       </td>
-      <td className="py-4">
+      <td className="py-4 pr-5">
         <div className="text-base text-gray-700">{cat.description}</div>
       </td>
-      <td className="py-4">
-        {cat.created_at ? new Date(cat.created_at).toLocaleString() : "—"}
-      </td>
-      <td className="py-4 pr-4">
+      <td className="py-4 pr-7">
         <div className="relative flex justify-end" ref={menuRef}>
           <button
             className="p-2 rounded hover:bg-teal-50"
