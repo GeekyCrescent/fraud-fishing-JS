@@ -8,10 +8,11 @@ export type UserProfile ={
     email:string,
     name:string
     is_admin:boolean
+    is_super_admin:boolean
 }
 
 export type AccessPayload={
-    sub:string,
+    sub:string,S
     type:"access",
     profile: UserProfile
 }

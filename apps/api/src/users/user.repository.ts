@@ -9,6 +9,7 @@ export type User = {
     password_hash: string;
     salt: string;
     is_admin: boolean; 
+    is_super_admin: boolean;
     created_at: Date; 
 }
 
@@ -84,5 +85,10 @@ export class UserRepository {
             VALUES (?, ?, ?, ?, TRUE, TRUE)
         `;
         await this.dbService.getPool().query(sql, [name, email, hashedPassword, salt]);
+    }
+
+    async deleteUser(id: number): Promise<void> {
+        const sql = `DELETE FROM user WHERE id = ?`;
+        await this.dbService.getPool().query(sql, [id]);
     }
 }

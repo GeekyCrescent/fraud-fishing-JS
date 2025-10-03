@@ -30,7 +30,8 @@ export class AuthController {
                 id: user.id.toString(),
                 email: user.email,
                 name: user.name,
-                is_admin: user.is_admin
+                is_admin: user.is_admin,
+                is_super_admin: user.is_super_admin
             };
             const accessToken = await this.tokenService.generateAccess(userProfile);
             const refreshToken = await this.tokenService.generateRefresh(user.id.toString());
@@ -41,7 +42,8 @@ export class AuthController {
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    is_admin: user.is_admin
+                    is_admin: user.is_admin,
+                    is_super_admin: user.is_super_admin
                 }
             };
         } catch (error) {
@@ -86,7 +88,8 @@ export class AuthController {
                 id: fullUser.id.toString(), 
                 email: fullUser.email, 
                 name: fullUser.name,
-                is_admin: fullUser.is_admin
+                is_admin: fullUser.is_admin,
+                is_super_admin: fullUser.is_super_admin
             });
             
             return { accessToken: newAccessToken };
