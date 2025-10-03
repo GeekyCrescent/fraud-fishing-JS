@@ -88,4 +88,5 @@ export class UserService {
         
         return { email: user.email, name: user.name };
     }
+
 }

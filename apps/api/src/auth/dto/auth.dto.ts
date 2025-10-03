@@ -19,6 +19,7 @@ export class LoginResponseDto {
         email: string;
         name: string;
         is_admin: boolean;
+        is_super_admin?: boolean;
     };
 }
 
@@ -28,7 +29,8 @@ export class ProfileResponseDto {
             id: "1",
             email: "user@example.com",
             name: "Juan Pérez",
-            is_admin: false
+            is_admin: false,
+            is_super_admin: false
         },
         description: "Perfil del usuario"
     })
@@ -37,5 +39,6 @@ export class ProfileResponseDto {
         email: string;
         name: string;
         is_admin: boolean;
+        is_super_admin?: boolean;
     };
 }

@@ -131,4 +131,14 @@ export class AdminService {
         return { email: user.email, name: user.name };
     }
 
+    // DELETEs
+
+    async deleteUserById(id: number): Promise<void> {
+        const user = await this.userRepository.findById(id);
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+        await this.userRepository.deleteUser(id);
+    }
+
 }

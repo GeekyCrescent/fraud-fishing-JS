@@ -33,32 +33,45 @@ export default function CrudUsuarios() {
   const [sortKey, setSortKey] = useState<keyof UsuarioStats | "">("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  // Carga desde /admin/user/stats  -> { users: [...] }
+  // Función para obtener token de autorización
+  const authHeaders = () => {
+    const token = localStorage.getItem("accessToken");
+    return {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  };
+
+  // Carga desde /admin/user/stats -> { users: [...] } - SOLO usuarios normales
   useEffect(() => {
     fetch("http://localhost:3000/admin/user/stats", {
-      headers: { Authorization: "Bearer <TOKEN_ADMIN>" },
+      headers: authHeaders(), // Usar headers con token real
     })
       .then((res) => res.json())
       .then((data) => {
-        setUsuarios((data?.users ?? []) as UsuarioStats[]);
+        // Filtrar solo usuarios que NO son administradores
+        const regularUsers = (data?.users ?? []).filter((user: UsuarioStats) => 
+          !user.is_admin && !user.is_super_admin
+        );
+        setUsuarios(regularUsers);
         setPage(1);
       })
       .catch(() => setError("No se pudieron cargar los usuarios"));
   }, []);
 
-  // ===== KPIs (tarjetas) =====
-  const { total, nuevosSemana, admins, nuevosDia } = useMemo(() => {
+  // ===== KPIs (tarjetas) - Actualizados para usuarios normales =====
+  const { total, nuevosSemana, nuevosDia } = useMemo(() => {
     const now = new Date().getTime();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const oneDayMs = 24 * 60 * 60 * 1000;
     let t = 0,
       n = 0,
-      a = 0,
+      a = 0, // Este será 0 ya que solo mostramos usuarios normales
       d = 0;
 
     for (const u of usuarios) {
       t++;
-      if (u.is_admin) a++;
+      if (u.is_admin) a++; // Esto será 0 porque ya filtramos admins
       const created = new Date(u.created_at).getTime();
       if (now - created <= sevenDaysMs) n++;
       if (now - created <= oneDayMs) d++;
@@ -117,18 +130,30 @@ export default function CrudUsuarios() {
     e.preventDefault();
     setError("");
     try {
+      // Crear el usuario asegurándose que NO sea admin
+      const userData = {
+        ...nuevo,
+        is_admin: tipoNuevo === "admin", // Solo true si explícitamente se elige admin
+        is_super_admin: false // Nunca super admin desde usuarios normales
+      };
+
       const res = await fetch("http://localhost:3000/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevo),
+        headers: authHeaders(),
+        body: JSON.stringify(userData),
       });
       if (!res.ok) throw new Error();
-      await res.json();
+      
+      // Recargar solo usuarios normales
       const ref = await fetch("http://localhost:3000/admin/user/stats", {
-        headers: { Authorization: "Bearer <TOKEN_ADMIN>" },
+        headers: authHeaders(),
       });
       const data = await ref.json();
-      setUsuarios(data?.users ?? []);
+      const regularUsers = (data?.users ?? []).filter((user: UsuarioStats) => 
+        !user.is_admin && !user.is_super_admin
+      );
+      setUsuarios(regularUsers);
+      
       setShowForm(false);
       setNuevo({ name: "", email: "", password: "" });
     } catch {
@@ -192,10 +217,10 @@ export default function CrudUsuarios() {
           </div>
         </div>
 
-        {/* Tarjetas KPI (3–4) */}
+        {/* Tarjetas KPI - Actualizadas para usuarios normales */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <KpiCard
-            title="Usuarios totales"
+            title="Usuarios normales"
             value={total}
             tone="solid"
           />
@@ -210,8 +235,8 @@ export default function CrudUsuarios() {
             tone="soft"
           />
           <KpiCard
-            title="Admins"
-            value={admins}
+            title="Usuarios activos"  // Cambié "Admins" por algo más relevante
+            value={usuarios.filter(u => u.reportCount > 0 || u.commentCount > 0).length}
             tone="soft"
           />
         </div>
