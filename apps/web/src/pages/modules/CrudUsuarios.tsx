@@ -204,16 +204,6 @@ export default function CrudUsuarios() {
               <FiPlus className="text-[18px]" />
               Agregar usuario
             </button>
-                        <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
-              onClick={() =>{
-              setShowForm(true)
-              setTipoNuevo("admin");
-              }}
-            >
-              <FiPlus className="text-[18px]" />
-              Agregar administrador
-            </button>
           </div>
         </div>
 
