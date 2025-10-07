@@ -47,6 +47,7 @@ export class UserRepository {
             u.name,
             u.email,
             u.is_admin,
+            u.is_super_admin,
             u.created_at,
             COUNT(DISTINCT r.id) as reportCount,
             COUNT(DISTINCT c.id) as commentCount,

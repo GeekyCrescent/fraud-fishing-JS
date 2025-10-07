@@ -21,6 +21,20 @@ export type ReportWithStatus = Report & {
     status_description?: string;
 }
 
+export type Tag = {
+    id: number;
+    name: string;
+    color?: string;
+}
+
+export type ReportWithTags = Report & {
+    tags: Tag[];
+}
+
+export type ReportWithStatusAndTags = ReportWithStatus & {
+    tags: Tag[];
+}
+
 @Injectable()
 export class ReportRepository {
     constructor(private readonly dbService: DbService) {}
@@ -91,6 +105,28 @@ export class ReportRepository {
         return result[0];
     }
 
+    async findTagsByReportId(reportId: number): Promise<Tag[]> {
+        const sql = `
+            SELECT t.id, t.name, t.color
+            FROM tag t
+            INNER JOIN report_tag rt ON t.id = rt.tag_id
+            WHERE rt.report_id = ?
+        `;
+        const [rows] = await this.dbService.getPool().query(sql, [reportId]);
+        return rows as Tag[];
+    }
+
+    async findCategoryByReportId(reportId: number): Promise<string> {
+        const sql = `
+                    SELECT c.name 
+                    FROM report r 
+                    INNER JOIN category c ON r.category_id = c.id 
+                    WHERE r.id = ? LIMIT 1`;
+        const [rows] = await this.dbService.getPool().query(sql, [reportId]);
+        const result = rows as {name: string}[];
+        return result[0]?.name;
+    }
+
     async findReportByUrl(url: string): Promise<Report> {
         const sql = `SELECT * FROM report WHERE url = ? LIMIT 1`;
         const [rows] = await this.dbService.getPool().query(sql, [url]);
@@ -139,7 +175,7 @@ export class ReportRepository {
 
     async createReport(userId: number, categoryId: number, title: string, description: string, url: string, imageUrl?: string): Promise<void> {
         const sql = `
-            INSERT INTO report (user_id, category_id, title, description, url, image_url, status_id) 
+            INSERT INTO report (user_id, category_id, title, description, url, image_url, , status_id) 
             VALUES (?, ?, ?, ?, ?, ?, 1)
         `; // status_id = 1 (default, probablemente 'pending')
         await this.dbService.getPool().query(sql, [userId, categoryId, title, description, url, imageUrl || null]);

@@ -14,11 +14,19 @@ interface Report {
   title?: string;
   description?: string;
   categoryId?: number;
+  categoryName?: string;
   statusId?: number;        
   voteCount?: number;      
   commentCount?: number;   
   createdAt?: string;
   reporterName?: string;  
+  tags?: Tag[];
+}
+
+interface Tag {
+  id: number;
+  name: string;
+  color: string;
 }
 
 interface ReportForCreate {
@@ -62,6 +70,51 @@ export default function CrudReportes() {
     } catch {
       setError("No se pudieron cargar los reportes");
     }
+  };
+
+  // ===== Obtener tags de un reporte =====
+  const fetchReportTags = async (reportId: number): Promise<Tag[]> => {
+    try {
+      const res = await fetch(`${API}/reports/${reportId}/tags`);
+      if (!res.ok) throw new Error();
+      const tags: Tag[] = await res.json();
+      return tags;
+    } catch {
+      console.error('Error al cargar tags del reporte');
+      return [];
+    }
+  };
+
+  // ===== Obtener categoría de un reporte =====
+  const fetchReportCategory = async (reportId: number): Promise<string> => {
+    try {
+      const res = await fetch(`${API}/reports/${reportId}/category`);
+      if (!res.ok) throw new Error();
+      const response: { categoryName: string } = await res.json();  
+      return response.categoryName;  
+    } catch {
+      console.error('Error al cargar categoría del reporte');
+      return 'Sin categoría';
+    }
+  };
+
+  // ===== Función mejorada para ver detalles =====
+  const handleVerDetalle = async (rep: Report) => {
+    // Cargar tags y categoría en paralelo
+    const [tags, categoryName] = await Promise.all([
+      fetchReportTags(rep.id),
+      fetchReportCategory(rep.id)
+    ]);
+
+    // Actualizar el reporte con los datos adicionales
+    const reporteCompleto = {
+      ...rep,
+      tags,
+      categoryName
+    };
+
+    setDetalle(reporteCompleto);
+    await fetchSiblings(rep.url);
   };
 
   useEffect(() => {
@@ -242,10 +295,7 @@ export default function CrudReportes() {
                 <RowReporte
                   key={rep.id}
                   rep={rep}
-                  onView={async () => {
-                    setDetalle(rep);
-                    await fetchSiblings(rep.url);
-                  }}
+                  onView={() => handleVerDetalle(rep)} 
                   onDelete={() => handleEliminar(rep.id)}
                 />
               ))}
@@ -332,12 +382,12 @@ export default function CrudReportes() {
           </div>
         )}
 
-        {/* Modal detalle */}
+        {/* Modal detalle MEJORADO */}
         {detalle && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
+            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto"> {/* ← Aumenté el ancho */}
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-lg font-bold mb-1">
                     {detalle.title || detalle.url}
                   </h3>
@@ -352,7 +402,41 @@ export default function CrudReportes() {
                   {detalle.description && (
                     <p className="text-gray-700 mt-2">{detalle.description}</p>
                   )}
-                  <div className="text-xs text-gray-500 mt-2">
+                  
+                  {/* NUEVA SECCIÓN: Categoría */}
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-semibold text-gray-600">Categoría:</span>
+                      <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                        {detalle.categoryName || 'Sin categoría'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* NUEVA SECCIÓN: Tags */}
+                  <div className="mt-4">
+                    <div className="text-sm font-semibold text-gray-600 mb-2">Tags:</div>
+                    {detalle.tags && detalle.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {detalle.tags.map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="inline-flex px-3 py-1 text-xs font-bold rounded-full shadow-sm"
+                            style={{
+                              backgroundColor: tag.color || '#E5E7EB',
+                              color: '#374151'
+                            }}
+                          >
+                            #{tag.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Sin tags</span>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-gray-500 mt-4">
                     Creado: {detalle.createdAt ? new Date(detalle.createdAt).toLocaleString() : "—"}
                   </div>
                 </div>
@@ -411,7 +495,7 @@ export default function CrudReportes() {
                             <span>💬 {s.commentCount ?? 0}</span>
                             <button
                               className="px-3 py-1 border rounded hover:bg-white"
-                              onClick={() => setDetalle(s)}
+                              onClick={() => handleVerDetalle(s)} 
                             >
                               Ver
                             </button>
