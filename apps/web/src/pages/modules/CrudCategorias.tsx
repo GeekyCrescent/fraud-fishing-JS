@@ -11,7 +11,7 @@ interface Categoria {
   id: number;
   name: string;
   description: string;
-  created_at?: string; // opcional, si tu API lo expone
+  created_at?: string;
 }
 
 export default function CrudCategorias() {

@@ -140,31 +140,47 @@ export default function CrudAdmins() {
     e.preventDefault();
     setError("");
     try {
-      const adminData = {
-        ...nuevo,
-        is_admin: true,
-        is_super_admin: tipoNuevo === "super_admin"
-      };
+      // Seleccionar el endpoint correcto según el tipo
+      const endpoint = tipoNuevo === "super_admin" 
+        ? "http://localhost:3000/admin/register-super"  // ← Para Super Admin
+        : "http://localhost:3000/admin/register";       // ← Para Admin normal
 
-      const res = await fetch("http://localhost:3000/admin/register", {
+      console.log("Endpoint seleccionado:", endpoint);
+      console.log("Tipo:", tipoNuevo);
+      console.log("Datos a enviar:", nuevo);
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify(adminData),
+        body: JSON.stringify(nuevo), // Solo name, email, password
       });
-      if (!res.ok) throw new Error();
       
-      // Recargar la lista de administradores - APLICAR EL MISMO FILTRO
+      if (!res.ok) {
+        const errorData = await res.text();
+        console.error("Error del backend:", errorData);
+        throw new Error();
+      }
+      
+      // Recargar la lista de administradores
       const ref = await fetch("http://localhost:3000/admin/user/stats", {
         headers: authHeaders(),
       });
       const data = await ref.json();
-      const adminUsers = (data?.users ?? []).filter((user: AdminStats) => 
-        user.is_admin || user.is_super_admin  // ← CAMBIO: mismo filtro aquí también
-      );
-      setAdmins(adminUsers);
+      console.log("Lista actualizada:", data);
       
+      const adminUsers = (data?.users ?? []).filter((user: AdminStats) => 
+        user.is_admin || user.is_super_admin
+      ).map((user: AdminStats) => ({
+        ...user,
+        is_admin: Boolean(user.is_admin),
+        is_super_admin: Boolean(user.is_super_admin || 0)  // Manejar undefined
+      }));
+      
+      setAdmins(adminUsers);
       setShowForm(false);
       setNuevo({ name: "", email: "", password: "" });
+      setTipoNuevo("admin"); // Reset al tipo por defecto
+      
     } catch {
       setError("No se pudo crear el administrador");
     }
@@ -258,18 +274,20 @@ export default function CrudAdmins() {
         )}
 
         {/* Tabla simplificada - Solo Nombre, Email, Rol, Creado */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
-          <table className="w-full min-w-[600px]"> {/* Reducido el min-width */}
+        <div className="w-full text-sm text-left text-gray-600">
+          <table className="w-full min-w-[860px]">
             <thead>
-              <tr className="text-gray-500 text-xs uppercase">
+              <tr className="text-gray-600">
                 <Th onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir}>Nombre</Th>
                 <Th onClick={() => toggleSort("email")} active={sortKey === "email"} dir={sortDir}>Email</Th>
                 <Th onClick={() => toggleSort("is_super_admin")} active={sortKey === "is_super_admin"} dir={sortDir}>Rol</Th>
                 <Th onClick={() => toggleSort("created_at")} active={sortKey === "created_at"} dir={sortDir}>Creado</Th>
-                <th className="py-3 pr-4 text-right w-20">Acciones</th>
+                <th className="py-3 pr-4 text-right w-0">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+
+            {/* importante: igual que CrudUsuarios */}
+            <tbody className="divide-y divide-gray-300">
               {pageItems.map((admin) => (
                 <RowAdmin
                   key={admin.id}
@@ -280,7 +298,7 @@ export default function CrudAdmins() {
               ))}
               {pageItems.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-6 text-center text-gray-400"> {/* Cambiado de 8 a 5 */}
+                  <td colSpan={5} className="p-6 text-center text-gray-400">
                     {filtro
                       ? `No se encontraron administradores con "${filtro}"`
                       : "No hay administradores."}
@@ -319,16 +337,62 @@ export default function CrudAdmins() {
           </div>
         </div>
 
-        {/* Modal crear */}
+        {/* Modal crear - MEJORADO */}
         {showForm && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
             <form
               onSubmit={handleCrear}
               className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md"
             >
-              <h3 className="text-lg font-semibold mb-4">
-                {tipoNuevo === "admin" ? "Agregar Administrador" : "Agregar Super Administrador"}
-              </h3>
+              {/* HEADER mejorado que muestra claramente el tipo */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">
+                  {tipoNuevo === "admin" ? "Agregar Administrador" : "Agregar Super Administrador"}
+                </h3>
+                
+                {/* Badge que muestra el tipo seleccionado */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Creando:</span>
+                  <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${
+                    tipoNuevo === "super_admin"
+                      ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
+                      : 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300'
+                  }`}>
+                    {tipoNuevo === "super_admin" ? "👑 Super Admin" : "⚙️ Admin"}
+                  </span>
+                </div>
+                
+                {/* Selector para cambiar el tipo */}
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Tipo de administrador:</div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition ${
+                        tipoNuevo === "admin"
+                          ? 'bg-teal-50 border-teal-300 text-teal-700'
+                          : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setTipoNuevo("admin")}
+                    >
+                      ⚙️ Administrador
+                    </button>
+                    <button
+                      type="button"
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition ${
+                        tipoNuevo === "super_admin"
+                          ? 'bg-purple-50 border-purple-300 text-purple-700'
+                          : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setTipoNuevo("super_admin")}
+                    >
+                      👑 Super Admin
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campos del formulario */}
               <input
                 className="border p-2 rounded w-full mb-3"
                 placeholder="Nombre"
@@ -352,12 +416,42 @@ export default function CrudAdmins() {
                 onChange={(e) => setNuevo((n) => ({ ...n, password: e.target.value }))}
                 required
               />
+
+              {/* Información adicional sobre permisos */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="text-sm font-medium text-blue-800 mb-1">
+                  {tipoNuevo === "super_admin" ? "Permisos de Super Administrador:" : "Permisos de Administrador:"}
+                </div>
+                <ul className="text-xs text-blue-700 space-y-1">
+                  <li>✓ Gestionar reportes y usuarios</li>
+                  <li>✓ Validar contenido</li>
+                  {tipoNuevo === "super_admin" && (
+                    <li className="font-semibold">✓ Gestionar otros administradores</li>
+                  )}
+                </ul>
+              </div>
+
+              {/* Botones */}
               <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 bg-gray-100 rounded" onClick={() => setShowForm(false)}>
+                <button 
+                  type="button" 
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded transition" 
+                  onClick={() => {
+                    setShowForm(false);
+                    setTipoNuevo("admin"); // Reset al cerrar
+                  }}
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded">
-                  Crear
+                <button 
+                  type="submit" 
+                  className={`px-4 py-2 text-white rounded transition ${
+                    tipoNuevo === "super_admin"
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : "bg-teal-600 hover:bg-teal-700"
+                  }`}
+                >
+                  Crear {tipoNuevo === "super_admin" ? "Super Admin" : "Admin"}
                 </button>
               </div>
             </form>
@@ -438,10 +532,11 @@ function Th({
 }) {
   return (
     <th
-      className="py-3 px-4 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-50"
+      className="py-3 px-2 text-left font-bold text-[13px] select-none cursor-pointer"
       onClick={onClick}
+      title="Ordenar"
     >
-      <div className="flex items-center gap-1">
+      <div className="inline-flex items-center gap-1">
         {children}
         {active && <span className="text-gray-400">{dir === "asc" ? "▲" : "▼"}</span>}
       </div>
@@ -462,12 +557,11 @@ function RowAdmin({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ← LOG 4: Verificar datos en cada fila
-  console.log(`Renderizando fila para: ${admin.name}`, {
-    is_admin: admin.is_admin,
-    is_super_admin: admin.is_super_admin,
-    typeof_is_super_admin: typeof admin.is_super_admin
-  });
+  // Convertir a booleanos para asegurar tipos correctos
+  const isSuperAdmin = Boolean(admin.is_super_admin);
+  const isAdmin = Boolean(admin.is_admin);
+
+  console.log(`${admin.name}: is_admin=${admin.is_admin} (${typeof admin.is_admin}), is_super_admin=${admin.is_super_admin} (${typeof admin.is_super_admin})`);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -481,22 +575,27 @@ function RowAdmin({
 
   return (
     <tr className="border-t hover:bg-teal-50/40">
-      <td className="py-4 px-4">
-        <div className="font-medium text-gray-900">{admin.name}</div>
+      <td className="py-4 pl-4">
+        <div className="text-lg font-semibold">{admin.name}</div>
       </td>
-      <td className="py-4 px-4">
-        <div className="text-gray-700">{admin.email}</div>
+      <td className="py-4">
+        <div className="text-base">{admin.email}</div>
       </td>
+
+      {/* Mantén exactamente tus clases del badge de Rol */}
       <td className="py-4 px-4">
         <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full shadow-sm ${
-          admin.is_super_admin 
-            ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' 
-            : 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300'
+          isSuperAdmin
+            ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
+            : isAdmin
+            ? 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300'
+            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
         }`}>
-          {admin.is_super_admin ? "👑 Super Admin" : "⚙️ Admin"}
+          {isSuperAdmin ? "👑 Super Admin" : isAdmin ? "⚙️ Admin" : "👤 Usuario"}
         </span>
       </td>
-      <td className="py-4 px-4">
+
+      <td className="py-4">
         <div className="text-gray-600 text-sm">
           {new Date(admin.created_at).toLocaleDateString()}
         </div>
@@ -504,33 +603,27 @@ function RowAdmin({
           {new Date(admin.created_at).toLocaleTimeString()}
         </div>
       </td>
+
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
           <button
-            className="p-2 rounded hover:bg-teal-50"
+            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
             onClick={() => setOpen((v) => !v)}
             aria-label="Más acciones"
           >
             <FiMoreHorizontal />
           </button>
           {open && (
-            <div className="absolute right-0 top-9 w-40 bg-white border rounded shadow-lg z-10">
+            <div className="absolute right-0 top-9 w-40 bg-white shadow-lg rounded z-10">
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
-                onClick={() => {
-                  onView();
-                  setOpen(false);
-                }}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                onClick={() => { onView(); setOpen(false); }}
               >
                 <FiEye /> Ver
               </button>
-              <div className="border-t my-1" />
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
-                onClick={() => {
-                  onDelete();
-                  setOpen(false);
-                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 cursor-pointer"
+                onClick={() => { onDelete(); setOpen(false); }}
               >
                 <FiTrash2 /> Eliminar
               </button>

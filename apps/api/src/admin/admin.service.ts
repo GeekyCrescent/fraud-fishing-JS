@@ -59,6 +59,7 @@ export class AdminService {
             name: user.name,
             email: user.email,
             is_admin: Boolean(user.is_admin),
+            is_super_admin: Boolean(user.is_super_admin),
             created_at: user.created_at,
             reportCount: Number(user.reportCount) || 0,
             commentCount: Number(user.commentCount) || 0,

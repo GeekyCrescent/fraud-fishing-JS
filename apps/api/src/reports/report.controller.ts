@@ -3,7 +3,7 @@ import { ReportService } from "./report.service";
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request";
-import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto } from "./dto/report.dto";
+import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto } from "./dto/report.dto";
 import { CommentDto } from "../comments/dto/comment.dto";
 import { NotificationService } from '../notifications/notification.service';
 
@@ -121,13 +121,33 @@ export class ReportController {
         return this.reportService.findReportsByStatus(Number(statusId));
     }
 
+    @Get(':id/tags')
+    @ApiOperation({ summary: 'Obtener tags asociados a un reporte' })
+    @ApiParam({ name: 'id', description: 'ID del reporte', type: 'number' })
+    @ApiResponse({ status: 200, description: "Tags obtenidos exitosamente", type: [TagDto] })
+    @ApiResponse({ status: 400, description: "ID inválido" })
+    @ApiResponse({ status: 404, description: "Reporte no encontrado" })
+    async getTagsByReportId(@Param('id') id: string): Promise<TagDto[]> {
+        return this.reportService.findTagsByReportId(Number(id));  
+    }
+
+    @Get(':id/category')
+    @ApiOperation({ summary: 'Obtener categoría asociada a un reporte' })
+    @ApiParam({ name: 'id', description: 'ID del reporte', type: 'number' })
+    @ApiResponse({ status: 200, description: "Categoría obtenida exitosamente", schema: { type: 'object', properties: { categoryName: { type: 'string' } } } })
+    @ApiResponse({ status: 400, description: "ID inválido" })
+    @ApiResponse({ status: 404, description: "Reporte no encontrado" })
+    async getCategoryByReportId(@Param('id') id: string): Promise<{ categoryName: string }> {
+        return this.reportService.findCategoryByReportId(Number(id)); 
+    }
+
     @Get('url/:url')
     @ApiOperation({ summary: 'Obtener reporte por URL' })
     @ApiParam({ name: 'url', description: 'URL del reporte', type: 'string' })
     @ApiResponse({ status: 200, description: "Reporte obtenido exitosamente", type: ReportDto })
     @ApiResponse({ status: 404, description: "Reporte no encontrado" })
     async getReportByUrl(@Param('url') url: string): Promise<ReportDto> {
-        return this.reportService.findReportByUrl(decodeURIComponent(url)); // Decodificar URL
+        return this.reportService.findReportByUrl(decodeURIComponent(url));
     }
 
     @Get(':id')

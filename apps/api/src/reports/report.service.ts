@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Report, ReportRepository, ReportWithStatus } from "./report.repository";
-import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto } from "./dto/report.dto";
+import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto } from "./dto/report.dto";
 import { CommentDto, CreateCommentDto } from "src/comments/dto/comment.dto";
 import { CommentService } from "src/comments/comment.service";
 import { NotificationService } from '../notifications/notification.service'; // ← Agregar
@@ -134,6 +134,26 @@ export class ReportService {
         const reports = await this.reportRepository.findCompletedReportsByUserId(userId);
         return reports.map(report => this.mapReportToDto(report));
     }
+
+    async findCategoryByReportId(reportId: number): Promise<{ categoryName: string }> {
+        const categoryName = await this.reportRepository.findCategoryByReportId(reportId);
+        if (!categoryName) {
+            throw new NotFoundException(`Categoría para el reporte con ID ${reportId} no encontrada`);
+        }
+        return { categoryName };  // ← Devolver objeto en lugar de string simple
+    }
+
+    async findTagsByReportId(reportId: number): Promise<TagDto[]> {  // ← Cambiar de string[] a TagDto[]
+        const tags = await this.reportRepository.findTagsByReportId(reportId);
+        
+        // Mapear correctamente a TagDto
+        return tags.map(tag => ({
+            id: tag.id,
+            name: tag.name,
+            color: tag.color
+        }));
+    }
+
 
     // --- POSTS ---
 

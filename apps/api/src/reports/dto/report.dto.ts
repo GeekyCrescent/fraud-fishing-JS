@@ -1,5 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+export class TagDto {
+    @ApiProperty({ example: 1, description: "ID del tag" })
+    id: number;
+
+    @ApiProperty({ example: "Phishing", description: "Nombre del tag" })
+    name: string;
+
+    @ApiProperty({ example: "#FF5733", description: "Color del tag en formato hexadecimal", required: false })
+    color?: string;
+}
+
 export class ReportDto {
     @ApiProperty({ example: 1, description: "ID del reporte" })
     id: number;
@@ -9,6 +20,17 @@ export class ReportDto {
 
     @ApiProperty({ example: 1, description: "ID de la categoría" })
     categoryId: number;
+
+    @ApiProperty({ 
+        type: [TagDto], 
+        description: "Lista de tags asociados al reporte", 
+        required: false,
+        example: [
+            { id: 1, name: "Phishing", color: "#FF5733" },
+            { id: 2, name: "Banco", color: "#33FF57" }
+        ]
+    })
+    tags?: TagDto[];
 
     @ApiProperty({ example: "Sitio de phishing detectado", description: "Título del reporte" })
     title: string;
@@ -57,6 +79,14 @@ export class CreateReportDto {
     @ApiProperty({ example: "https://fake-bank.com", description: "URL a reportar" })
     url: string;
 
+    @ApiProperty({ 
+        type: [Number], 
+        description: "Array de IDs de tags a asociar al reporte", 
+        required: false,
+        example: [1, 2, 3]
+    })
+    tagIds?: number[];
+
     @ApiProperty({ example: "https://example.com/image.jpg", description: "URL de la imagen", required: false })
     imageUrl?: string;
     
@@ -76,6 +106,14 @@ export class UpdateReportDto {
 
     @ApiProperty({ example: 2, description: "Nuevo ID de categoría", required: false })
     categoryId?: number;
+
+    @ApiProperty({ 
+        type: [Number], 
+        description: "Nuevo array de IDs de tags", 
+        required: false,
+        example: [1, 3, 5]
+    })
+    tagIds?: number[];
 
     @ApiProperty({ example: "https://example.com/new-image.jpg", description: "Nueva URL de imagen", required: false })
     imageUrl?: string;
@@ -98,4 +136,23 @@ export class ReportStatusDto {
 
     @ApiProperty({ example: "En espera de revisión", description: "Descripción del status", required: false })
     description?: string;
+}
+
+// DTO adicional para manejar la asociación de tags
+export class AddTagsToReportDto {
+    @ApiProperty({ 
+        type: [Number], 
+        description: "Array de IDs de tags a agregar al reporte",
+        example: [1, 2, 3]
+    })
+    tagIds: number[];
+}
+
+export class RemoveTagsFromReportDto {
+    @ApiProperty({ 
+        type: [Number], 
+        description: "Array de IDs de tags a remover del reporte",
+        example: [2, 3]
+    })
+    tagIds: number[];
 }

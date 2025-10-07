@@ -37,7 +37,15 @@ export default function Dashboard() {
 
         if (res.ok) {
           const data = await res.json();
-          setUser(data.profile); // Asumiendo que el endpoint devuelve { profile: User }
+          console.log("Datos recibidos:", data);
+          const userData = data.profile;
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            is_admin: Boolean(userData.is_admin),
+            is_super_admin: Boolean(userData.is_super_admin),
+          });
         }
       } catch (error) {
         console.error("Error al obtener el perfil del usuario:", error);
@@ -50,7 +58,7 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 h-screen flex flex-col bg-white border-r-1 border-teal-600">
+      <aside className="w-64 h-screen flex flex-col bg-white border-r border-teal-600"> {/* ← CAMBIO: border-r-1 → border-r */}
         {/* Logo */}
         <div className="p-6 text-2xl font-bold text-teal-700">
           Fraud<span className="text-black">Fishing</span>
@@ -116,7 +124,7 @@ export default function Dashboard() {
           </NavLink>
 
           {/* Solo mostrar "Admins" si el usuario es super admin */}
-          {user?.is_super_admin && (
+          {(user?.is_super_admin === true) &&  (
             <NavLink
               to="admins"
               className={({ isActive }) =>
