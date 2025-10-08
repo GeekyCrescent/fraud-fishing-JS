@@ -1,12 +1,18 @@
+// CrudReportes.tsx — estilo replicado desde CrudUsuarios
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FiPlus,
   FiTrash2,
   FiEye,
   FiMoreHorizontal,
   FiSearch,
   FiFlag,
 } from "react-icons/fi";
+
+interface Tag {
+  id: number;
+  name: string;
+}
 
 interface Report {
   id: number;
@@ -15,25 +21,25 @@ interface Report {
   description?: string;
   categoryId?: number;
   categoryName?: string;
-  statusId?: number;        
-  voteCount?: number;      
-  commentCount?: number;   
+  statusId?: number;
+  voteCount?: number;
+  commentCount?: number;
   createdAt?: string;
-  reporterName?: string;  
+  reporterName?: string;
+  userId?: number;
   tags?: Tag[];
 }
 
-interface Tag {
+interface UsuarioDetalle {
   id: number;
   name: string;
-  color: string;
-}
-
-interface ReportForCreate {
-  url: string;
-  title?: string;
-  description?: string;
-  categoryId?: number;
+  email: string;
+  is_admin: boolean;
+  is_super_admin: boolean;
+  created_at: string;
+  reportCount: number;
+  commentCount: number;
+  likeCount: number;
 }
 
 interface Sibling extends Report {}
@@ -43,22 +49,21 @@ export default function CrudReportes() {
   const [detalle, setDetalle] = useState<Report | null>(null);
   const [siblings, setSiblings] = useState<Sibling[] | null>(null);
   const [error, setError] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [nuevo, setNuevo] = useState<ReportForCreate>({ url: "" });
 
   const [filtro, setFiltro] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-  const [sortKey, setSortKey] =
-    useState<keyof Report | "">("");
+  const [sortKey, setSortKey] = useState<keyof Report | "">("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [usuarioDetalle, setUsuarioDetalle] = useState<UsuarioDetalle | null>(null);
 
   const API = "http://localhost:3000";
   const authHeaders = (): Record<string, string> => {
     const t = localStorage.getItem("accessToken");
     return t ? { Authorization: `Bearer ${t}` } : {};
   };
-  // ===== Carga de reportes (GET /reports) =====
+
+  // ===== Carga de reportes
   const fetchReportes = async () => {
     setError("");
     try {
@@ -72,7 +77,7 @@ export default function CrudReportes() {
     }
   };
 
-  // ===== Obtener tags de un reporte =====
+  // ===== Obtener tags
   const fetchReportTags = async (reportId: number): Promise<Tag[]> => {
     try {
       const res = await fetch(`${API}/reports/${reportId}/tags`);
@@ -80,39 +85,48 @@ export default function CrudReportes() {
       const tags: Tag[] = await res.json();
       return tags;
     } catch {
-      console.error('Error al cargar tags del reporte');
+      console.error("Error al cargar tags del reporte");
       return [];
     }
   };
 
-  // ===== Obtener categoría de un reporte =====
+  // ===== Obtener categoría
   const fetchReportCategory = async (reportId: number): Promise<string> => {
     try {
       const res = await fetch(`${API}/reports/${reportId}/category`);
       if (!res.ok) throw new Error();
-      const response: { categoryName: string } = await res.json();  
-      return response.categoryName;  
+      const response: { categoryName: string } = await res.json();
+      return response.categoryName;
     } catch {
-      console.error('Error al cargar categoría del reporte');
-      return 'Sin categoría';
+      console.error("Error al cargar categoría del reporte");
+      return "Sin categoría";
     }
   };
 
-  // ===== Función mejorada para ver detalles =====
+  
+  const fetchUserDetails = async (userId: number) => {
+    try {
+      const res = await fetch(`${API}/admin/user/stats`, {
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const user = data?.users?.find((u: UsuarioDetalle) => u.id === userId);
+      if (user) setUsuarioDetalle(user);
+      else setError("Usuario no encontrado");
+    } catch {
+      setError("No se pudieron cargar los detalles del usuario");
+    }
+  };
+
+  // ===== Detalle (cargar categoría + tags + siblings)
   const handleVerDetalle = async (rep: Report) => {
-    // Cargar tags y categoría en paralelo
     const [tags, categoryName] = await Promise.all([
       fetchReportTags(rep.id),
-      fetchReportCategory(rep.id)
+      fetchReportCategory(rep.id),
     ]);
 
-    // Actualizar el reporte con los datos adicionales
-    const reporteCompleto = {
-      ...rep,
-      tags,
-      categoryName
-    };
-
+    const reporteCompleto = { ...rep, tags, categoryName };
     setDetalle(reporteCompleto);
     await fetchSiblings(rep.url);
   };
@@ -121,21 +135,24 @@ export default function CrudReportes() {
     fetchReportes();
   }, []);
 
-  // ===== KPIs =====
+  // ===== KPIs
   const { total, populares, conComentarios, hoy } = useMemo(() => {
     const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;
-    let t = 0, pop = 0, cc = 0, d = 0;
+    let t = 0,
+      pop = 0,
+      cc = 0,
+      d = 0;
     for (const r of reportes) {
       t++;
       if ((r.voteCount ?? 0) > 0) pop++;
       if ((r.commentCount ?? 0) > 0) cc++;
-      if (r.createdAt && (now - new Date(r.createdAt).getTime() <= oneDay)) d++;
+      if (r.createdAt && now - new Date(r.createdAt).getTime() <= oneDay) d++;
     }
     return { total: t, populares: pop, conComentarios: cc, hoy: d };
   }, [reportes]);
 
-  // ===== Filtro y ordenamiento =====
+  // ===== Filtro
   const filtrados = useMemo(() => {
     const f = filtro.trim().toLowerCase();
     if (!f) return reportes;
@@ -147,6 +164,7 @@ export default function CrudReportes() {
     });
   }, [reportes, filtro]);
 
+  // ===== Ordenamiento
   const ordenados = useMemo(() => {
     if (!sortKey) return filtrados;
     const arr = [...filtrados];
@@ -184,29 +202,7 @@ export default function CrudReportes() {
     }
   };
 
-  // ===== Crear (POST /reports) =====
-  const handleCrear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    try {
-      const res = await fetch(`${API}/reports`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders(),
-        },
-        body: JSON.stringify(nuevo),
-      });
-      if (!res.ok) throw new Error();
-      await fetchReportes();
-      setShowForm(false);
-      setNuevo({ url: "" });
-    } catch {
-      setError("No se pudo crear el reporte");
-    }
-  };
-
-  // ===== Eliminar (DELETE /reports/:id) =====
+  // ===== Eliminar
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este reporte?")) return;
     try {
@@ -222,11 +218,13 @@ export default function CrudReportes() {
     }
   };
 
-  // ===== Siblings (GET /reports/siblings?url=...) =====
+  // ===== Siblings por URL
   const fetchSiblings = async (url: string) => {
     setSiblings(null);
     try {
-      const res = await fetch(`${API}/reports/siblings?url=${encodeURIComponent(url)}`);
+      const res = await fetch(
+        `${API}/reports/siblings?url=${encodeURIComponent(url)}`
+      );
       if (!res.ok) throw new Error();
       const data: Sibling[] = await res.json();
       setSiblings(data ?? []);
@@ -235,7 +233,7 @@ export default function CrudReportes() {
     }
   };
 
-  // ===== UI =====
+  // ===== UI
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -250,23 +248,16 @@ export default function CrudReportes() {
                 placeholder="Buscar por URL, título o descripción…"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
-                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
+                className="pl-10 pr-4 py-2 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
-            <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
-              onClick={() => setShowForm(true)}
-            >
-              <FiPlus className="text-[18px]" />
-              Agregar reporte
-            </button>
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* Tarjetas KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KpiCard title="Total" value={total} tone="solid" />
-          <KpiCard title="Populares (con votos)" value={populares} tone="soft" />
+          <KpiCard title="Reportes activos" value={total} tone="solid" />
+          <KpiCard title="Con votos" value={populares} tone="soft" />
           <KpiCard title="Con comentarios" value={conComentarios} tone="soft" />
           <KpiCard title="Nuevos (hoy)" value={hoy} tone="soft" />
         </div>
@@ -278,31 +269,71 @@ export default function CrudReportes() {
         )}
 
         {/* Tabla */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+        <div className="w-full text-sm text-left text-gray-600">
           <table className="w-full min-w-[980px]">
             <thead>
-              <tr className="text-gray-500 text-xs uppercase">
-                <Th onClick={() => toggleSort("url")} active={sortKey === "url"} dir={sortDir}>URL</Th>
-                <Th onClick={() => toggleSort("title")} active={sortKey === "title"} dir={sortDir}>Título</Th>
-                <Th onClick={() => toggleSort("voteCount")} active={sortKey === "voteCount"} dir={sortDir}>Votos</Th>
-                <Th onClick={() => toggleSort("commentCount")} active={sortKey === "commentCount"} dir={sortDir}>Comentarios</Th>
-                <Th onClick={() => toggleSort("createdAt")} active={sortKey === "createdAt"} dir={sortDir}>Creado</Th>
-                <th className="py-3 pr-4 text-right w-56">Acciones</th>
+              <tr className="text-gray-600">
+                <Th
+                  onClick={() => toggleSort("url")}
+                  active={sortKey === "url"}
+                  dir={sortDir}
+                >
+                  URL
+                </Th>
+                <Th
+                  onClick={() => toggleSort("title")}
+                  active={sortKey === "title"}
+                  dir={sortDir}
+                >
+                  Título
+                </Th>
+                <Th
+                  onClick={() => toggleSort("voteCount")}
+                  active={sortKey === "voteCount"}
+                  dir={sortDir}
+                >
+                  Votos
+                </Th>
+                <Th
+                  onClick={() => toggleSort("commentCount")}
+                  active={sortKey === "commentCount"}
+                  dir={sortDir}
+                >
+                  Comentarios
+                </Th>
+                <Th
+                  onClick={() => toggleSort("userId")}
+                  active={sortKey === "userId"}
+                  dir={sortDir}
+                >
+                  Usuario
+                </Th>
+                <Th
+                  onClick={() => toggleSort("createdAt")}
+                  active={sortKey === "createdAt"}
+                  dir={sortDir}
+                >
+                  Creado
+                </Th>
+                <th className="py-3 pr-4 text-right w-0">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-300">
               {pageItems.map((rep) => (
                 <RowReporte
                   key={rep.id}
                   rep={rep}
-                  onView={() => handleVerDetalle(rep)} 
+                  onView={() => handleVerDetalle(rep)}
                   onDelete={() => handleEliminar(rep.id)}
+                  onViewUser={(userId) => fetchUserDetails(userId)} // ← AGREGAR ESTA LÍNEA
                 />
               ))}
               {pageItems.length === 0 && (
                 <tr>
                   <td colSpan={7} className="p-6 text-center text-gray-400">
-                    {filtro ? `Sin resultados para "${filtro}"` : "No hay reportes."}
+                    {filtro
+                      ? `Sin resultados para "${filtro}"`
+                      : "No hay reportes."}
                   </td>
                 </tr>
               )}
@@ -314,7 +345,7 @@ export default function CrudReportes() {
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select
-                className="border border-gray-300 rounded-md px-2 py-1 bg-white"
+                className="border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
                 value={pageSize}
                 onChange={(e) => {
                   const v = Number(e.target.value);
@@ -323,12 +354,17 @@ export default function CrudReportes() {
                 }}
               >
                 {[10, 20, 50].map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
                 ))}
               </select>
               <span className="ml-2">
                 {pageItems.length > 0
-                  ? `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, ordenados.length)} de ${ordenados.length}`
+                  ? `${(page - 1) * pageSize + 1}–${Math.min(
+                      page * pageSize,
+                      ordenados.length
+                    )} de ${ordenados.length}`
                   : `0 de ${ordenados.length}`}
               </span>
             </div>
@@ -336,56 +372,10 @@ export default function CrudReportes() {
           </div>
         </div>
 
-        {/* Modal crear */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <form onSubmit={handleCrear} className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-              <h3 className="text-lg font-semibold mb-4">Agregar reporte</h3>
-              <input
-                className="border p-2 rounded w-full mb-3"
-                placeholder="URL (https://...)"
-                value={nuevo.url}
-                onChange={(e) => setNuevo((n) => ({ ...n, url: e.target.value }))}
-                required
-              />
-              <input
-                className="border p-2 rounded w-full mb-3"
-                placeholder="Título (opcional)"
-                value={nuevo.title ?? ""}
-                onChange={(e) => setNuevo((n) => ({ ...n, title: e.target.value }))}
-              />
-              <textarea
-                className="border p-2 rounded w-full mb-3"
-                placeholder="Descripción (opcional)"
-                rows={3}
-                value={nuevo.description ?? ""}
-                onChange={(e) => setNuevo((n) => ({ ...n, description: e.target.value }))}
-              />
-              <input
-                className="border p-2 rounded w-full mb-4"
-                placeholder="CategoryId (opcional)"
-                type="number"
-                value={nuevo.categoryId ?? ""}
-                onChange={(e) =>
-                  setNuevo((n) => ({ ...n, categoryId: e.target.value ? Number(e.target.value) : undefined }))
-                }
-              />
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 bg-gray-100 rounded" onClick={() => setShowForm(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded">
-                  Crear
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Modal detalle MEJORADO */}
+        {/* Modal detalle */}
         {detalle && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto"> {/* ← Aumenté el ancho */}
+            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold mb-1">
@@ -402,20 +392,24 @@ export default function CrudReportes() {
                   {detalle.description && (
                     <p className="text-gray-700 mt-2">{detalle.description}</p>
                   )}
-                  
-                  {/* NUEVA SECCIÓN: Categoría */}
+
+                  {/* Categoría */}
                   <div className="mt-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-semibold text-gray-600">Categoría:</span>
+                      <span className="text-sm font-semibold text-gray-600">
+                        Categoría:
+                      </span>
                       <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
-                        {detalle.categoryName || 'Sin categoría'}
+                        {detalle.categoryName || "Sin categoría"}
                       </span>
                     </div>
                   </div>
 
-                  {/* NUEVA SECCIÓN: Tags */}
+                  {/* Tags */}
                   <div className="mt-4">
-                    <div className="text-sm font-semibold text-gray-600 mb-2">Tags:</div>
+                    <div className="text-sm font-semibold text-gray-600 mb-2">
+                      Tags:
+                    </div>
                     {detalle.tags && detalle.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {detalle.tags.map((tag) => (
@@ -423,8 +417,8 @@ export default function CrudReportes() {
                             key={tag.id}
                             className="inline-flex px-3 py-1 text-xs font-bold rounded-full shadow-sm"
                             style={{
-                              backgroundColor: tag.color || '#E5E7EB',
-                              color: '#374151'
+                              backgroundColor: "#E5E7EB",
+                              color: "#374151",
                             }}
                           >
                             #{tag.name}
@@ -437,7 +431,10 @@ export default function CrudReportes() {
                   </div>
 
                   <div className="text-xs text-gray-500 mt-4">
-                    Creado: {detalle.createdAt ? new Date(detalle.createdAt).toLocaleString() : "—"}
+                    Creado:{" "}
+                    {detalle.createdAt
+                      ? new Date(detalle.createdAt).toLocaleString()
+                      : "—"}
                   </div>
                 </div>
                 <button
@@ -459,8 +456,18 @@ export default function CrudReportes() {
                   <div className="text-xl font-semibold">{detalle.commentCount ?? 0}</div>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-gray-500">Status</div>
-                  <div className="text-xl font-semibold">{detalle.statusId ?? "—"}</div>
+                  <div className="text-xs text-gray-500">Usuario</div>
+                  <div className="text-xl font-semibold">
+                    {detalle.userId ? (
+                      <button
+                        onClick={() => fetchUserDetails(detalle.userId!)}
+                        className="text-teal-600 hover:text-teal-800 hover:underline font-medium cursor-pointer"
+                        title="Ver detalles del usuario"
+                      >
+                        #{detalle.userId}
+                      </button>
+                    ) : ("—")}
+                  </div>
                 </div>
               </div>
 
@@ -470,24 +477,35 @@ export default function CrudReportes() {
                   <h4 className="font-semibold flex items-center gap-2">
                     <FiFlag /> Otros reportes de esta URL
                   </h4>
-                  <span className="text-sm text-gray-500">{siblings?.length ?? 0}</span>
+                  <span className="text-sm text-gray-500">
+                    {siblings?.length ?? 0}
+                  </span>
                 </div>
 
-                {!siblings && <div className="text-gray-400">Cargando…</div>}
+                {!siblings && (
+                  <div className="text-gray-400">Cargando…</div>
+                )}
                 {siblings && siblings.length === 0 && (
-                  <div className="text-gray-400">No hay más reportes de esta URL.</div>
+                  <div className="text-gray-400">
+                    No hay más reportes de esta URL.
+                  </div>
                 )}
                 {siblings && siblings.length > 0 && (
                   <ul className="space-y-3 max-h-72 overflow-auto pr-1">
                     {siblings.map((s) => (
-                      <li key={s.id} className="border rounded-lg p-3 bg-gray-50">
+                      <li
+                        key={s.id}
+                        className="border rounded-lg p-3 bg-gray-50"
+                      >
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="font-medium">
                               {s.title || "(sin título)"} · #{s.id}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {s.createdAt ? new Date(s.createdAt).toLocaleString() : "—"}
+                              {s.createdAt
+                                ? new Date(s.createdAt).toLocaleString()
+                                : "—"}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 text-sm">
@@ -495,7 +513,7 @@ export default function CrudReportes() {
                             <span>💬 {s.commentCount ?? 0}</span>
                             <button
                               className="px-3 py-1 border rounded hover:bg-white"
-                              onClick={() => handleVerDetalle(s)} 
+                              onClick={() => handleVerDetalle(s)}
                             >
                               Ver
                             </button>
@@ -509,12 +527,91 @@ export default function CrudReportes() {
             </div>
           </div>
         )}
+
+        {/* Modal detalle usuario */}
+        {usuarioDetalle && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <h3 className="text-lg font-bold">Detalles del Usuario</h3>
+                <button
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded"
+                  onClick={() => setUsuarioDetalle(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <span className="text-sm font-semibold text-gray-600">Nombre:</span>
+                  <p className="text-gray-900">{usuarioDetalle.name}</p>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-semibold text-gray-600">Email:</span>
+                  <p className="text-gray-900">{usuarioDetalle.email}</p>
+                </div>
+
+                <div>
+                  <span className="text-sm font-semibold text-gray-600">Tipo:</span>
+                  <div className="flex gap-2 mt-1">
+                    {usuarioDetalle.is_super_admin && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                        Super Admin
+                      </span>
+                    )}
+                    {usuarioDetalle.is_admin && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        Admin
+                      </span>
+                    )}
+                    {!usuarioDetalle.is_admin && !usuarioDetalle.is_super_admin && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                        Usuario Regular
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-sm font-semibold text-gray-600">Registrado:</span>
+                  <p className="text-gray-900">
+                    {new Date(usuarioDetalle.created_at).toLocaleString()}
+                  </p>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-teal-600">
+                      {usuarioDetalle.reportCount}
+                    </div>
+                    <div className="text-sm text-gray-500">Reportes</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {usuarioDetalle.commentCount}
+                    </div>
+                    <div className="text-sm text-gray-500">Comentarios</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {usuarioDetalle.likeCount}
+                    </div>
+                    <div className="text-sm text-gray-500">Likes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ====== KpiCard ====== */
+/* ====== KpiCard (idéntico a CrudUsuarios) ====== */
 function KpiCard({
   title,
   value,
@@ -526,20 +623,22 @@ function KpiCard({
 }) {
   const base =
     tone === "solid"
-      ? "bg-teal-600 text-white hover:bg-teal-700"
-      : "bg-teal-50 text-teal-900 border border-teal-100 hover:bg-teal-100";
+      ? "bg-teal-600 text-white"
+      : "bg-teal-50 text-teal-900 border border-teal-100";
   const numberStyle =
-    tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
+    tone === "solid"
+      ? "text-3xl font-semibold"
+      : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>
   );
 }
 
-/* ====== Header cell con ordenamiento ====== */
+/* ====== Header cell con ordenamiento (idéntico) ====== */
 function Th({
   children,
   onClick,
@@ -559,21 +658,25 @@ function Th({
     >
       <div className="inline-flex items-center gap-1">
         {children}
-        {active && <span className="text-gray-400">{dir === "asc" ? "▲" : "▼"}</span>}
+        {active && (
+          <span className="text-gray-400">{dir === "asc" ? "▲" : "▼"}</span>
+        )}
       </div>
     </th>
   );
 }
 
-/* ====== Fila ====== */
+/* ====== Fila — estilos replicados del RowUsuario ====== */
 function RowReporte({
   rep,
   onView,
   onDelete,
-}: {  
+  onViewUser, // ← AGREGAR ESTE PARÁMETRO
+}: {
   rep: Report;
   onView: () => void;
   onDelete: () => void;
+  onViewUser: (userId: number) => void; // ← AGREGAR ESTE TIPO
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -591,24 +694,50 @@ function RowReporte({
   return (
     <tr className="border-t hover:bg-teal-50/40">
       <td className="py-4 pl-4">
-        <a href={rep.url} target="_blank" rel="noreferrer" className="text-teal-700 hover:underline break-all">
+        <a
+          href={rep.url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-teal-700 hover:underline break-all"
+        >
           {rep.url}
         </a>
       </td>
       <td className="py-4">{rep.title ?? "—"}</td>
-      <td className="py-4">{rep.voteCount ?? 0}</td>
-      <td className="py-4">{rep.commentCount ?? 0}</td>
-      <td className="py-4">{rep.statusId ?? "—"}</td>
-      <td className="py-4">{rep.createdAt ? new Date(rep.createdAt).toLocaleString() : "—"}</td>
+      <td className="py-4 pl-8">{rep.voteCount ?? 0}</td>
+      <td className="py-4 pl-8">{rep.commentCount ?? 0}</td>
+      <td className="py-4">
+        {rep.userId ? (
+          <button
+            onClick={() => onViewUser(rep.userId!)} // ← CAMBIAR fetchUserDetails por onViewUser
+            className="text-teal-600 hover:text-teal-800 hover:underline font-medium cursor-pointer"
+            title="Ver detalles del usuario"
+          >
+            #{rep.userId}
+          </button>
+        ) : ("—")}
+      </td>
+      <td className="py-4">
+        <div className="text-gray-600 text-sm">
+          {rep.createdAt ? new Date(rep.createdAt).toLocaleDateString() : "—"}
+        </div>
+        <div className="text-gray-400 text-xs">
+          {rep.createdAt ? new Date(rep.createdAt).toLocaleTimeString() : "—"}
+        </div>
+      </td>
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
-          <button className="p-2 rounded hover:bg-teal-50" onClick={() => setOpen((v) => !v)} aria-label="Más acciones">
+          <button
+            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Más acciones"
+          >
             <FiMoreHorizontal />
           </button>
           {open && (
-            <div className="absolute right-0 top-9 w-56 bg-white border rounded shadow">
+            <div className="absolute right-0 top-9 z-50 w-40 bg-white border shadow-lg rounded">
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   onView();
                   setOpen(false);
@@ -616,11 +745,8 @@ function RowReporte({
               >
                 <FiEye /> Ver
               </button>
-
-              <div className="border-t my-1" />
-              {/* Cambiar status rápido (IDs de ejemplo) */}
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50"
+                className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 cursor-pointer"
                 onClick={() => {
                   onDelete();
                   setOpen(false);
@@ -636,7 +762,7 @@ function RowReporte({
   );
 }
 
-/* ====== Paginación ====== */
+/* ====== Paginación (idéntica) ====== */
 function Pagination({
   page,
   totalPages,
@@ -666,7 +792,7 @@ function Pagination({
   return (
     <div className="flex items-center gap-2">
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
         onClick={() => onChange(Math.max(1, page - 1))}
         disabled={page <= 1}
       >
@@ -692,7 +818,7 @@ function Pagination({
         )
       )}
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
         onClick={() => onChange(Math.min(totalPages, page + 1))}
         disabled={page >= totalPages}
       >

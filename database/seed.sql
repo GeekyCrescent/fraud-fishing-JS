@@ -51,22 +51,22 @@ INSERT INTO `report_status` (`id`, `name`, `description`) VALUES
 (4, 'Rechazado', 'El reporte fue revisado y se determinó que no procede.');
 
 -- Tags
-INSERT INTO `tag` (`id`, `name`, `color`) VALUES
-(1, 'Urgente', '#FF4444'),
-(2, 'Verificado', '#00AA00'),
-(3, 'En Investigación', '#FFA500'),
-(4, 'Falso Positivo', '#888888'),
-(5, 'Alta Prioridad', '#FF0000'),
-(6, 'Resuelto', '#28A745'),
-(7, 'Duplicado', '#6C757D'),
-(8, 'Necesita Información', '#17A2B8'),
-(9, 'Sitio Caído', '#6F42C1'),
-(10, 'Reportado a Autoridades', '#20C997'),
-(11, 'Phishing Bancario', '#DC3545'),
-(12, 'Estafa Masiva', '#FD7E14'),
-(13, 'Malware Confirmado', '#6610F2'),
-(14, 'Sitio Bloqueado', '#6F42C1'),
-(15, 'Bajo Impacto', '#6C757D');
+INSERT INTO `tag` (`id`, `name`) VALUES
+(1, 'Urgente'),
+(2, 'Verificado'),
+(3, 'En Investigación'),
+(4, 'Falso Positivo'),
+(5, 'Alta Prioridad'),
+(6, 'Resuelto'),
+(7, 'Duplicado'),
+(8, 'Necesita Información'),
+(9, 'Sitio Caído'),
+(10, 'Reportado a Autoridades'),
+(11, 'Phishing Bancario'),
+(12, 'Estafa Masiva'),
+(13, 'Malware Confirmado'),
+(14, 'Sitio Bloqueado'),
+(15, 'Bajo Impacto');
 
 -- Tipos de Notificaciones
 INSERT INTO `notification_type` (`id`, `name`, `description`, `is_active`) VALUES

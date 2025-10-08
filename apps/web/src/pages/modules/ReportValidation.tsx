@@ -28,8 +28,21 @@ interface Report {
   voteCount?: number;
   commentCount?: number;
   createdAt?: string;  // ISO
-  reporterName?: string;
+  userId?: number; // Cambio: usar userId en lugar de reporterName
   tags?: Tag[];
+}
+
+// Agregar interface para datos del usuario
+interface UsuarioDetalle {
+  id: number;
+  name: string;
+  email: string;
+  is_admin: boolean;
+  is_super_admin: boolean;
+  created_at: string;
+  reportCount: number;
+  commentCount: number;
+  likeCount: number;
 }
 
 const API = "http://localhost:3000";
@@ -52,6 +65,9 @@ export default function CrudValidacionReportes() {
   // Detalle
   const [detalle, setDetalle] = useState<Report | null>(null);
   const [moderationNote, setModerationNote] = useState("");
+  
+  // Agregar estado para modal de usuario
+  const [usuarioDetalle, setUsuarioDetalle] = useState<UsuarioDetalle | null>(null);
 
   const authHeaders = (): Record<string, string> => {
     const t = localStorage.getItem("accessToken");
@@ -71,6 +87,25 @@ export default function CrudValidacionReportes() {
     }
   };
 
+  // Agregar función para obtener detalles del usuario
+  const fetchUserDetails = async (userId: number) => {
+    try {
+      const res = await fetch(`${API}/admin/user/stats`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const user = data?.users?.find((u: UsuarioDetalle) => u.id === userId);
+      if (user) {
+        setUsuarioDetalle(user);
+      } else {
+        setError("Usuario no encontrado");
+      }
+    } catch {
+      setError("No se pudieron cargar los detalles del usuario");
+    }
+  };
+
   useEffect(() => {
     fetchByStatus(1);
     fetchByStatus(2);
@@ -86,8 +121,8 @@ export default function CrudValidacionReportes() {
       const u = r.url?.toLowerCase() ?? "";
       const t = r.title?.toLowerCase() ?? "";
       const d = r.description?.toLowerCase() ?? "";
-      const rp = r.reporterName?.toLowerCase() ?? "";
-      return u.includes(f) || t.includes(f) || d.includes(f) || rp.includes(f);
+      const uid = r.userId?.toString() ?? "";
+      return u.includes(f) || t.includes(f) || d.includes(f) || uid.includes(f);
     });
   }, [dataset, filtro]);
 
@@ -214,7 +249,7 @@ export default function CrudValidacionReportes() {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por URL, título, descripción o autor…"
+                placeholder="Buscar por URL, título, descripción o user ID…"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
                 className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
@@ -278,8 +313,8 @@ export default function CrudValidacionReportes() {
                 <Th onClick={() => toggleSort("title")} active={sortKey === "title"} dir={sortDir}>
                   Título
                 </Th>
-                <Th onClick={() => toggleSort("reporterName")} active={sortKey === "reporterName"} dir={sortDir}>
-                  Reportado por
+                <Th onClick={() => toggleSort("userId")} active={sortKey === "userId"} dir={sortDir}>
+                  User ID
                 </Th>
                 <Th onClick={() => toggleSort("createdAt")} active={sortKey === "createdAt"} dir={sortDir}>
                   Creado
@@ -296,6 +331,7 @@ export default function CrudValidacionReportes() {
                   isTabPendientes={activeTab === "sin_empezar"}
                   onView={() => handleVerDetalle(r)}
                   onMoveToProgress={() => updateStatus(r.id, 2)}
+                  onViewUser={(userId) => fetchUserDetails(userId)}
                 />
               ))}
               {pageItems.length === 0 && (
@@ -447,6 +483,47 @@ export default function CrudValidacionReportes() {
             </div>
           </div>
         )}
+
+        {/* Modal detalle usuario */}
+        {usuarioDetalle && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+              <h3 className="text-lg font-bold mb-1">{usuarioDetalle.name}</h3>
+              <p className="text-gray-700">{usuarioDetalle.email}</p>
+              <p className="text-sm text-gray-500 mb-4">
+                Rol: {usuarioDetalle.is_admin ? "Admin" : "Usuario"}
+              </p>
+
+              <div className="grid grid-cols-3 gap-3 mb-4 text-center">
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-gray-500">Reports</div>
+                  <div className="text-xl font-semibold">{usuarioDetalle.reportCount}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-gray-500">Comments</div>
+                  <div className="text-xl font-semibold">{usuarioDetalle.commentCount}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-gray-500">Likes</div>
+                  <div className="text-xl font-semibold">{usuarioDetalle.likeCount}</div>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-500 mb-5">
+                Created: {new Date(usuarioDetalle.created_at).toLocaleString()}
+              </div>
+
+              <div className="flex justify-end">
+                <button 
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded" 
+                  onClick={() => setUsuarioDetalle(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -484,11 +561,13 @@ function RowValidacion({
   isTabPendientes,
   onView,
   onMoveToProgress,
+  onViewUser,
 }: {
   rep: Report;
   isTabPendientes: boolean;
   onView: () => void;
   onMoveToProgress: () => void;
+  onViewUser: (userId: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -511,7 +590,19 @@ function RowValidacion({
         </a>
       </td>
       <td className="py-4">{rep.title ?? "—"}</td>
-      <td className="py-4">{rep.reporterName ?? "—"}</td>
+      <td className="py-4">
+        {rep.userId ? (
+          <button
+            onClick={() => onViewUser(rep.userId!)}
+            className="text-teal-600 hover:text-teal-800 hover:underline font-medium cursor-pointer"
+            title="Ver detalles del usuario"
+          >
+            #{rep.userId}
+          </button>
+        ) : (
+          "—"
+        )}
+      </td>
       <td className="py-4">
         <div className="text-gray-600 text-sm">
           {rep.createdAt ? new Date(rep.createdAt).toLocaleDateString() : "—"}
@@ -522,41 +613,39 @@ function RowValidacion({
       </td>
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
-          <button
-            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Más acciones"
-          >
-            <FiMoreHorizontal />
-          </button>
-          {open && (
-            <div className="absolute right-0 top-9 w-56 bg-white border rounded shadow">
+          {isTabPendientes ? (
+            // En pestaña "Sin empezar": solo botón directo para mover a progreso
+            <button
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+              onClick={onMoveToProgress}
+              title="Mover a En progreso (status 2)"
+            >
+              <FiChevronRight /> Iniciar revisión
+            </button>
+          ) : (
+            // En pestaña "En progreso": menú completo con opciones
+            <>
               <button
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
-                onClick={() => {
-                  onView();
-                  setOpen(false);
-                }}
+                className="p-2 rounded hover:bg-gray-100 cursor-pointer"
+                onClick={() => setOpen((v) => !v)}
+                aria-label="Más acciones"
               >
-                <FiEye /> Ver detalle
+                <FiMoreHorizontal />
               </button>
-
-              {isTabPendientes && (
-                <>
-                  <div className="border-t my-1" />
+              {open && (
+                <div className="absolute right-0 top-9 w-56 bg-white border rounded shadow z-10">
                   <button
                     className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
                     onClick={() => {
-                      onMoveToProgress();
+                      onView();
                       setOpen(false);
                     }}
-                    title="Mover a En progreso (status 2)"
                   >
-                    <FiChevronRight /> Mover a “En progreso”
+                    <FiEye /> Ver detalle completo
                   </button>
-                </>
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </td>

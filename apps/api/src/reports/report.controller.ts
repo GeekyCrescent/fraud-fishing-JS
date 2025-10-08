@@ -207,9 +207,9 @@ export class ReportController {
         return this.reportService.voteReport(Number(id), body.voteType);
     }
 
-    // ===== NUEVO ENDPOINT PARA ACTUALIZAR STATUS =====
-
     @Put(':id/status')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Actualizar el status de un reporte' })
     @ApiParam({ name: 'id', description: 'ID del reporte', type: 'number' })
     @ApiBody({ type: UpdateReportStatusDto })
@@ -229,7 +229,28 @@ export class ReportController {
         );
     }
 
-    // ===== DELETES =======
+    
+    @Put(':id/tags/from-text')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Agregar tags por nombre a un reporte' })
+    @ApiBody({ 
+        schema: { 
+            type: 'object', 
+            properties: { 
+                tagNames: { 
+                    type: 'array', 
+                    items: { type: 'string' },
+                    example: ["phishing", "banco", "nuevo-tag"]
+                } 
+            } 
+        } 
+    })
+    async addTagsToReport(@Param('id') id: string, @Body() body: { tagNames: string[] }): Promise<TagDto[]> {
+        return this.reportService.addTagsFromText(Number(id), body.tagNames);
+    }
+
+        // ===== DELETES =======
 
     @Delete(':id')
     @UseGuards(JwtAuthGuard)

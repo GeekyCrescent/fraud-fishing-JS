@@ -204,16 +204,6 @@ export default function CrudUsuarios() {
               <FiPlus className="text-[18px]" />
               Agregar usuario
             </button>
-                        <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
-              onClick={() =>{
-              setShowForm(true)
-              setTipoNuevo("admin");
-              }}
-            >
-              <FiPlus className="text-[18px]" />
-              Agregar administrador
-            </button>
           </div>
         </div>
 
@@ -409,13 +399,13 @@ function KpiCard({
 }) {
   const base =
     tone === "solid"
-      ? "bg-teal-600 text-white"
-      : "bg-teal-50 text-teal-900 border border-teal-100";
+      ? "bg-teal-600 text-white hover:bg-teal-700"
+      : "bg-teal-50 text-teal-900 border border-teal-100 hover:bg-teal-100";
   const numberStyle =
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>
@@ -483,7 +473,14 @@ function RowUsuario({
       <td className="py-4 pl-8">{user.reportCount}</td>
       <td className="py-4 pl-8">{user.commentCount}</td>
       <td className="py-4 pl-4">{user.likeCount}</td>
-      <td className="py-4">{new Date(user.created_at).toLocaleString()}</td>
+      <td className="py-4">
+        <div className="text-gray-600 text-sm">
+          {new Date(user.created_at).toLocaleDateString()}
+        </div>
+        <div className="text-gray-400 text-xs">
+          {new Date(user.created_at).toLocaleTimeString()}
+        </div>
+      </td>
       <td className="py-4 pr-4">
         <div className="relative flex justify-end" ref={menuRef}>
           <button

@@ -6,9 +6,6 @@ export class TagDto {
 
     @ApiProperty({ example: "Phishing", description: "Nombre del tag" })
     name: string;
-
-    @ApiProperty({ example: "#FF5733", description: "Color del tag en formato hexadecimal", required: false })
-    color?: string;
 }
 
 export class ReportDto {
@@ -79,18 +76,17 @@ export class CreateReportDto {
     @ApiProperty({ example: "https://fake-bank.com", description: "URL a reportar" })
     url: string;
 
-    @ApiProperty({ 
-        type: [Number], 
-        description: "Array de IDs de tags a asociar al reporte", 
+    @ApiProperty({
+        type: [String],
         required: false,
-        example: [1, 2, 3]
+        description: "Nombres de tags (se crean automáticamente si no existen)",
+        example: ["phishing", "banco", "malware", "estafa"]
     })
-    tagIds?: number[];
+    tagNames?: string[];
 
     @ApiProperty({ example: "https://example.com/image.jpg", description: "URL de la imagen", required: false })
     imageUrl?: string;
     
-    // Nota: userId se agrega automáticamente desde el token JWT en el controller
     userId?: number;
 }
 
@@ -107,13 +103,13 @@ export class UpdateReportDto {
     @ApiProperty({ example: 2, description: "Nuevo ID de categoría", required: false })
     categoryId?: number;
 
-    @ApiProperty({ 
-        type: [Number], 
-        description: "Nuevo array de IDs de tags", 
+    @ApiProperty({
+        type: [String],
         required: false,
-        example: [1, 3, 5]
+        description: "Reemplazar todos los tags con estos nombres",
+        example: ["phishing", "actualizado", "verificado"]
     })
-    tagIds?: number[];
+    tagNames?: string[];
 
     @ApiProperty({ example: "https://example.com/new-image.jpg", description: "Nueva URL de imagen", required: false })
     imageUrl?: string;
@@ -138,21 +134,3 @@ export class ReportStatusDto {
     description?: string;
 }
 
-// DTO adicional para manejar la asociación de tags
-export class AddTagsToReportDto {
-    @ApiProperty({ 
-        type: [Number], 
-        description: "Array de IDs de tags a agregar al reporte",
-        example: [1, 2, 3]
-    })
-    tagIds: number[];
-}
-
-export class RemoveTagsFromReportDto {
-    @ApiProperty({ 
-        type: [Number], 
-        description: "Array de IDs de tags a remover del reporte",
-        example: [2, 3]
-    })
-    tagIds: number[];
-}
