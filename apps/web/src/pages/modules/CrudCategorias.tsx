@@ -395,7 +395,7 @@ function KpiCard({
 
   return (
     <div
-      className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg flex flex-col justify-between`}
+      className={`rounded-2xl ${base} p-5 shadow-sm flex flex-col justify-between`}
     >
       <div className="text-sm opacity-90">{title}</div>
       <div className="mt-2">

@@ -221,7 +221,7 @@ export default function CrudAdmins() {
               />
             </div>
             <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
               onClick={() => {
                 setShowForm(true)
                 setTipoNuevo("admin");
@@ -231,7 +231,7 @@ export default function CrudAdmins() {
               Agregar admin
             </button>
             <button
-              className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-sm"
+              className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
               onClick={() => {
                 setShowForm(true)
                 setTipoNuevo("super_admin");
@@ -511,7 +511,7 @@ function KpiCard({
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>

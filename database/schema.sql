@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS `report_status` (
 CREATE TABLE IF NOT EXISTS `tag` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL,
-  `color` VARCHAR(7) NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tag_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

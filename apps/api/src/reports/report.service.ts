@@ -150,7 +150,6 @@ export class ReportService {
         return tags.map(tag => ({
             id: tag.id,
             name: tag.name,
-            color: tag.color
         }));
     }
 
@@ -158,29 +157,38 @@ export class ReportService {
     // --- POSTS ---
 
     async createReport(createReportDto: CreateReportDto): Promise<ReportDto> {
-        const { userId, categoryId, title, description, url, imageUrl } = createReportDto;
+        const { userId, categoryId, title, description, url, imageUrl, tagNames } = createReportDto;
 
-        // Validaciones existentes...
-        if (!userId || typeof userId !== "number" || userId <= 0) {
-            throw new BadRequestException("ID de usuario inválido");
+        if (typeof userId !== 'number' || typeof categoryId !== 'number') {
+            throw new BadRequestException("userId y categoryId son requeridos y deben ser números");
         }
 
+        // 1) Crear el reporte
         await this.reportRepository.createReport(
-            userId, 
-            categoryId, 
-            title.trim(), 
-            description.trim(), 
-            url.trim(), 
-            imageUrl
+            userId, categoryId, title.trim(), description.trim(), url.trim(), imageUrl
         );
-        
+
+        // 2) Obtener el nuevo reporte
         const newReport = await this.reportRepository.findLatestReportByUserAndUrl(userId, url.trim());
-        
-        if (!newReport) {
-            throw new Error("Error al crear el reporte");
+        if (!newReport) throw new Error("Error al crear el reporte");
+
+        // 3) Asociar tags (solo por nombres)
+        if (tagNames?.length) {
+            const tagIds = await this.reportRepository.findOrCreateTagsByNames(tagNames);
+            if (tagIds.length) {
+                await this.reportRepository.addTagsToReport(newReport.id, tagIds);
+            }
         }
-        
+
         return this.mapReportToDto(newReport);
+    }
+
+    // Simplificar métodos de tags
+    async addTagsFromText(reportId: number, tagNames: string[]): Promise<TagDto[]> {
+        const ids = await this.reportRepository.findOrCreateTagsByNames(tagNames);
+        await this.reportRepository.addTagsToReport(reportId, ids);
+        const tags = await this.reportRepository.findTagsByReportId(reportId);
+        return tags.map(t => ({ id: t.id, name: t.name }));
     }
 
     // --- PUTS ---
