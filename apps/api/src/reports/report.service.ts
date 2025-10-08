@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Report, ReportRepository, ReportWithStatus } from "./report.repository";
 import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto } from "./dto/report.dto";
-import { CommentDto, CreateCommentDto } from "src/comments/dto/comment.dto";
+import { CreateCommentDto } from "src/comments/dto/comment.dto";
 import { CommentService } from "src/comments/comment.service";
 import { NotificationService } from '../notifications/notification.service'; // ← Agregar
 
@@ -209,8 +209,7 @@ export class ReportService {
         const finalDescription = description || existingReport.description;
         const finalUrl = url || existingReport.url;
         const finalCategoryId = categoryId || existingReport.category_id;
-        const finalImageUrl = imageUrl !== undefined ? imageUrl : existingReport.image_url;
-
+        const finalImageUrl = imageUrl ?? existingReport.image_url;
         await this.reportRepository.updateReport(id, finalTitle, finalDescription, finalUrl, finalCategoryId, finalImageUrl);
 
         const updatedReport = await this.reportRepository.findById(id);
@@ -347,7 +346,7 @@ export class ReportService {
             commentContent += 'Este reporte ha sido marcado como **completado** por nuestro equipo de moderación. ';
             commentContent += 'Las acciones necesarias han sido tomadas para abordar esta amenaza de seguridad.\n\n';
             
-            if (moderationNote && moderationNote.trim()) {
+            if (moderationNote?.trim()) {
                 commentContent += `**Nota del moderador:** ${moderationNote.trim()}\n\n`;
             }
             

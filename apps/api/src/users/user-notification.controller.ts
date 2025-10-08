@@ -2,7 +2,6 @@ import { Controller, Get, Put, Delete, Patch, Post, Param, Body, Query, Request,
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { NotificationService } from '../notifications/notification.service';
-import { NotificationWithType, UserNotificationPreference } from '../notifications/notification.repository';
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request"; 
 
 import {NotificationWithTypeDto,NotificationCountDto,NotificationSummaryDto,HasUnreadDto,UpdatePreferenceDto,UpdateAllPreferencesDto,NotificationPreferenceCheckDto,SuccessMessageDto, UserNotificationPreferenceDto} from '../notifications/dto/notification.dto';

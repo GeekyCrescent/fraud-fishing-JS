@@ -48,9 +48,9 @@ export class CommentService {
             throw new NotFoundException("Comentario no encontrado");
         }
         const { title, content, imageUrl } = updateCommentDto;
-        const finalTitle = title || existingComment.title;
-        const finalContent = content || existingComment.content;
-        const finalImageUrl = imageUrl !== undefined ? imageUrl : existingComment.image_url;
+        const finalTitle = title ?? existingComment.title;
+        const finalContent = content ?? existingComment.content;
+        const finalImageUrl = imageUrl ?? existingComment.image_url;
         await this.commentRepository.updateComment(id, finalTitle, finalContent, finalImageUrl);
         const updatedComment = await this.commentRepository.findById(id);
         return this.mapCommentToDto(updatedComment);

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { NotificationService, NOTIFICATION_TYPES } from './notification.service';
 import { NotificationType } from './notification.repository';
 

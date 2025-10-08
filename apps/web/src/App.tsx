@@ -13,7 +13,7 @@ import ReportValidation from "./pages/modules/ReportValidation";
 import { useState } from "react";
 
 function App() {
-  const [user, setUser] = useState<{ correo: string } | null>(null);
+  const [, setUser] = useState<{ correo: string } | null>(null);
 
   return (
     <Routes>

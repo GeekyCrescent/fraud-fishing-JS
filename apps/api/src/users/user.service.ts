@@ -9,8 +9,9 @@ import { UserDto, CreateUserDto, UpdateUserDto, LoginDto } from "./dto/user.dto"
 export class UserService {
     constructor( private readonly userRepository: UserRepository, private readonly reportRepository: ReportRepository) {}
 
-    // --- AUTHENTICATION ---
+    // --- POSTS ---
 
+    // Registro de usuario normal
     async registerUser(createUserDto: CreateUserDto): Promise<UserDto> {
         const { email, name, password } = createUserDto;
                 const existingUser = await this.userRepository.findByEmail(email);
