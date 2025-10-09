@@ -561,6 +561,23 @@ function RowAdmin({
   const isSuperAdmin = Boolean(admin.is_super_admin);
   const isAdmin = Boolean(admin.is_admin);
 
+  // ✅ Extraer la lógica del badge a declaraciones independientes
+  const getRoleBadgeStyles = () => {
+    if (isSuperAdmin) {
+      return 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300';
+    }
+    if (isAdmin) {
+      return 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300';
+    }
+    return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300';
+  };
+
+  const getRoleText = () => {
+    if (isSuperAdmin) return "👑 Super Admin";
+    if (isAdmin) return "⚙️ Admin";
+    return "👤 Usuario";
+  };
+
   console.log(`${admin.name}: is_admin=${admin.is_admin} (${typeof admin.is_admin}), is_super_admin=${admin.is_super_admin} (${typeof admin.is_super_admin})`);
 
   useEffect(() => {
@@ -582,16 +599,10 @@ function RowAdmin({
         <div className="text-base">{admin.email}</div>
       </td>
 
-      {/* Mantén exactamente tus clases del badge de Rol */}
+      {/* ✅ Badge simplificado usando las funciones extractadas */}
       <td className="py-4 px-4">
-        <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full shadow-sm ${
-          isSuperAdmin
-            ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300'
-            : isAdmin
-            ? 'bg-gradient-to-r from-teal-100 to-teal-200 text-teal-800 border border-teal-300'
-            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300'
-        }`}>
-          {isSuperAdmin ? "👑 Super Admin" : isAdmin ? "⚙️ Admin" : "👤 Usuario"}
+        <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full shadow-sm ${getRoleBadgeStyles()}`}>
+          {getRoleText()}
         </span>
       </td>
 
@@ -636,67 +647,151 @@ function RowAdmin({
 }
 
 /* ====== Paginación ====== */
+/* ====== Paginación mejorada ====== */
 function Pagination({
   page,
   totalPages,
   onChange,
+  maxVisiblePages = 6,
+  showFirstLast = true,
+  showPrevNext = true,
 }: {
   page: number;
   totalPages: number;
   onChange: (p: number) => void;
+  maxVisiblePages?: number;
+  showFirstLast?: boolean;
+  showPrevNext?: boolean;
 }) {
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
-    const push = (v: number | string) => arr.push(v);
-    if (totalPages <= 6) {
-      for (let i = 1; i <= totalPages; i++) push(i);
+    
+    // Si no hay páginas, devolver array vacío
+    if (totalPages <= 0) return arr;
+    
+    // Si hay pocas páginas, mostrar todas
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        arr.push(i);
+      }
       return arr;
     }
-    push(1);
-    if (page > 3) push("…");
-    const start = Math.max(2, page - 1);
-    const end = Math.min(totalPages - 1, page + 1);
-    for (let i = start; i <= end; i++) push(i);
-    if (page < totalPages - 2) push("…");
-    push(totalPages);
+
+    // Lógica compleja para muchas páginas
+    const halfVisible = Math.floor(maxVisiblePages / 2);
+    let startPage = Math.max(1, page - halfVisible);
+    let endPage = Math.min(totalPages, page + halfVisible);
+
+    // Ajustar si estamos cerca del inicio
+    if (page <= halfVisible) {
+      endPage = Math.min(maxVisiblePages, totalPages);
+    }
+    
+    // Ajustar si estamos cerca del final
+    if (page > totalPages - halfVisible) {
+      startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+    }
+
+    // Agregar primera página y ellipsis si es necesario
+    if (startPage > 1) {
+      arr.push(1);
+      if (startPage > 2) {
+        arr.push("…");
+      }
+    }
+
+    // Agregar páginas del rango
+    for (let i = startPage; i <= endPage; i++) {
+      if (i !== 1 && i !== totalPages) { // Evitar duplicados
+        arr.push(i);
+      }
+    }
+
+    // Agregar ellipsis y última página si es necesario
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        arr.push("…");
+      }
+      arr.push(totalPages);
+    }
+
     return arr;
-  }, [page, totalPages]);
+  }, [page, totalPages, maxVisiblePages]);
+
+  // No mostrar paginación si solo hay una página
+  if (totalPages <= 1) {
+    return null;
+  }
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
-        onClick={() => onChange(Math.max(1, page - 1))}
-        disabled={page <= 1}
-      >
-        {"<"}
-      </button>
+      {/* Botón "Primera página" */}
+      {showFirstLast && page > 1 && (
+        <button
+          className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 cursor-pointer"
+          onClick={() => onChange(1)}
+          title="Primera página"
+        >
+          {"<<"}
+        </button>
+      )}
+
+      {/* Botón "Anterior" */}
+      {showPrevNext && (
+        <button
+          className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          onClick={() => onChange(Math.max(1, page - 1))}
+          disabled={page <= 1}
+          title="Página anterior"
+        >
+          {"<"}
+        </button>
+      )}
+
+      {/* Páginas numeradas */}
       {pages.map((p, i) =>
         typeof p === "number" ? (
           <button
-            key={`${p}-${i}`}
-            className={`px-3 py-1 rounded border ${
+            key={`page-${p}`}
+            className={`px-3 py-1 rounded border cursor-pointer transition-colors ${
               p === page
                 ? "bg-teal-600 text-white border-teal-600"
                 : "border-gray-200 hover:bg-teal-50"
             }`}
             onClick={() => onChange(p)}
+            title={`Página ${p}`}
           >
             {p}
           </button>
         ) : (
-          <span key={`dots-${i}`} className="px-2 text-gray-500">
+          <span key={`ellipsis-${i}`} className="px-2 text-gray-500 select-none">
             {p}
           </span>
         )
       )}
-      <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50"
-        onClick={() => onChange(Math.min(totalPages, page + 1))}
-        disabled={page >= totalPages}
-      >
-        {">"}
-      </button>
+
+      {/* Botón "Siguiente" */}
+      {showPrevNext && (
+        <button
+          className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          onClick={() => onChange(Math.min(totalPages, page + 1))}
+          disabled={page >= totalPages}
+          title="Página siguiente"
+        >
+          {">"}
+        </button>
+      )}
+
+      {/* Botón "Última página" */}
+      {showFirstLast && page < totalPages && (
+        <button
+          className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 cursor-pointer"
+          onClick={() => onChange(totalPages)}
+          title="Última página"
+        >
+          {">>"}
+        </button>
+      )}
     </div>
   );
 }

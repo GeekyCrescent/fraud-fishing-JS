@@ -762,7 +762,7 @@ function RowReporte({
   );
 }
 
-/* ====== Paginación (idéntica) ====== */
+/* ====== Paginación mejorada ====== */
 function Pagination({
   page,
   totalPages,
@@ -775,10 +775,17 @@ function Pagination({
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
     const push = (v: number | string) => arr.push(v);
+    
+    // Si no hay páginas, retornar array vacío
+    if (totalPages <= 0) return arr;
+    
+    // Si hay pocas páginas, mostrar todas
     if (totalPages <= 6) {
       for (let i = 1; i <= totalPages; i++) push(i);
       return arr;
     }
+    
+    // Lógica compleja para muchas páginas
     push(1);
     if (page > 3) push("…");
     const start = Math.max(2, page - 1);
@@ -789,41 +796,85 @@ function Pagination({
     return arr;
   }, [page, totalPages]);
 
+  // Casos edge: No mostrar paginación
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  // Caso edge: Página inválida
+  if (page < 1 || page > totalPages) {
+    return (
+      <div className="flex items-center gap-2 text-red-500 text-sm">
+        <span>Página inválida ({page})</span>
+        <button
+          className="px-2 py-1 rounded border border-red-200 hover:bg-red-50 text-red-600"
+          onClick={() => onChange(1)}
+        >
+          Ir a página 1
+        </button>
+      </div>
+    );
+  }
+
+  // Caso edge: Sin datos
+  if (totalPages === 0) {
+    return (
+      <div className="text-gray-500 text-sm">
+        No hay datos para paginar
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2">
+      {/* Botón anterior */}
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         onClick={() => onChange(Math.max(1, page - 1))}
         disabled={page <= 1}
+        title={page <= 1 ? "Ya estás en la primera página" : "Página anterior"}
       >
         {"<"}
       </button>
+
+      {/* Páginas numeradas */}
       {pages.map((p, i) =>
         typeof p === "number" ? (
           <button
-            key={`${p}-${i}`}
-            className={`px-3 py-1 rounded border ${
+            key={`page-${p}`} // ← Mejor key que incluya ambos valores
+            className={`px-3 py-1 rounded border cursor-pointer transition-colors ${
               p === page
                 ? "bg-teal-600 text-white border-teal-600"
                 : "border-gray-200 hover:bg-teal-50"
             }`}
             onClick={() => onChange(p)}
+            title={`Ir a página ${p}`}
           >
             {p}
           </button>
         ) : (
-          <span key={`dots-${i}`} className="px-2 text-gray-500">
+          <span key={`ellipsis-${i}`} className="px-2 text-gray-500 select-none">
             {p}
           </span>
         )
       )}
+
+      {/* Botón siguiente */}
       <button
-        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 cursor-pointer"
+        className="px-2 py-1 rounded border border-gray-200 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         onClick={() => onChange(Math.min(totalPages, page + 1))}
         disabled={page >= totalPages}
+        title={page >= totalPages ? "Ya estás en la última página" : "Página siguiente"}
       >
         {">"}
       </button>
+
+      {/* Indicador de página (para muchas páginas) */}
+      {totalPages > 10 && (
+        <span className="ml-2 text-sm text-gray-500 select-none">
+          {page} de {totalPages}
+        </span>
+      )}
     </div>
   );
 }

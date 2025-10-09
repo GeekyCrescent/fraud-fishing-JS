@@ -104,11 +104,12 @@ export class AdminService {
                 };
             });
 
-            // Ordenar por puntuación de actividad y tomar los primeros
-            return userStats
-                .sort((a, b) => b.activityScore - a.activityScore)
-                .slice(0, limit)
-                .map(({ activityScore, ...user }) => user); // Remover activityScore del resultado
+            // ✅ Separar el ordenamiento en su propia declaración
+            const sortedUsers = userStats.sort((a, b) => b.activityScore - a.activityScore);
+            const topUsers = sortedUsers.slice(0, limit);
+            
+            // Remover activityScore del resultado
+            return topUsers.map(({ activityScore, ...user }) => user);
         } catch (error) {
             throw new Error(`Error al obtener usuarios más activos: ${error.message}`);
         }
