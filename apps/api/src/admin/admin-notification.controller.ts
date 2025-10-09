@@ -130,7 +130,6 @@ export class AdminNotificationController {
             5,
             '🧪 Notificación de prueba',
             'Esta es una notificación de prueba enviada desde el panel de administración.',
-            undefined
         );
         
         return { 
