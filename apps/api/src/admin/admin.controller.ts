@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Put, Get, Param, Delete } from "@nestjs/common";
 import { AdminService } from "./admin.service";
-import { ApiBody, ApiProperty, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; // Importar ApiOperation y ApiBearerAuth
+import { ApiBody, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; // Importar ApiOperation y ApiBearerAuth
 import { UpdateUserDto, UserDto } from "../users/dto/user.dto";
 import { CreateAdminDto } from "./dto/admin.dto";
 import { UserStatsDto, UserStatsResponseDto } from "./dto/user-stats.dto";
@@ -65,7 +65,7 @@ export class AdminController {
     @ApiResponse({ status: 200, description: "Usuario obtenido exitosamente", type: UserDto }) 
     @ApiResponse({ status: 404, description: "Usuario no encontrado" })
     async findUserById(@Param('id') id: string): Promise<UserDto> {
-        return this.adminService.findUserById(parseInt(id, 10));
+        return this.adminService.findUserById(Number.parseInt(id, 10));
     }
 
     //  PUTs
@@ -77,7 +77,7 @@ export class AdminController {
     @ApiResponse({ status: 200, description: "Usuario actualizado exitosamente", type: UserDto }) 
     @ApiResponse({ status: 404, description: "Usuario no encontrado" })
     async updateUserById(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserDto | void> {
-        return this.adminService.updateUserById(parseInt(id, 10), updateUserDto);
+        return this.adminService.updateUserById(Number.parseInt(id, 10), updateUserDto);
     }
 
     // DELETEs
@@ -87,6 +87,6 @@ export class AdminController {
     @ApiResponse({ status: 200, description: "Usuario eliminado exitosamente" }) 
     @ApiResponse({ status: 404, description: "Usuario no encontrado" })
     async deleteUserById(@Param('id') id: string): Promise<void> {
-        return this.adminService.deleteUserById(parseInt(id, 10));
+        return this.adminService.deleteUserById(Number.parseInt(id, 10));
     }
 }

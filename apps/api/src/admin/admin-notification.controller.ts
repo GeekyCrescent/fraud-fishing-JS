@@ -1,5 +1,5 @@
-import { Controller, Post, Delete,Get,Body, Param, Query,UseGuards,ParseIntPipe,HttpCode,HttpStatus,Request} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody,ApiBearerAuth,ApiQuery} from '@nestjs/swagger';
+import { Controller, Post, Delete,Get,Body, Param, Query,ParseIntPipe} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse} from '@nestjs/swagger';
 import { NotificationService } from '../notifications/notification.service';
 
 // Importar DTOs

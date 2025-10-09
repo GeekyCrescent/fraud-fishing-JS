@@ -1,65 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
-import { Category, CategoryRepository } from "./category.repository";
+import { CategoryRepository } from "./category.repository";
 import { CategoryDto, CreateCategoryDto, UpdateCategoryDto } from "./dto/category.dto";
 
 @Injectable()
 export class CategoryService {
     constructor(private readonly categoryRepository: CategoryRepository) {}
 
-    // --- GETS ---
-
-    async findAllCategories(): Promise<CategoryDto[]> {
-        const categories = await this.categoryRepository.findAllCategories();
-        return categories.map(category => ({
-            id: category.id,
-            name: category.name,
-            description: category.description
-        }));
-    }
-
-    async findById(id: number): Promise<CategoryDto> {
-        if (!id || id <= 0) {
-            throw new BadRequestException("ID de categoría inválido");
-        }
-        const category = await this.categoryRepository.findById(id);
-        if (!category) {
-            throw new NotFoundException("Categoría no encontrada");
-        }
-        return {
-            id: category.id,
-            name: category.name,
-            description: category.description
-        };
-    }
-
-    async findByName(name: string): Promise<CategoryDto> {
-        if (!name || name.trim() === "") {
-            throw new BadRequestException("Nombre de categoría es requerido");
-        }
-        const category = await this.categoryRepository.findByName(name.trim());
-        if (!category) {
-            throw new NotFoundException("Categoría no encontrada");
-        }
-        return {
-            id: category.id,
-            name: category.name,
-            description: category.description
-        };
-    }
-
-    async findTopCategories(limit: number): Promise<{ name: string; usage_count: number }[]> {
-        if (!limit || limit <= 0) {
-            throw new BadRequestException("Límite inválido");
-        }
-        const categories = await this.categoryRepository.findTopCategories(limit);
-        return categories.map(category => ({
-            name: category.name,
-            usage_count: category.usage_count
-        }));
-    }
-
     // --- POSTS ---
 
+    // Crear categoría
     async createCategory(createCategoryDto: CreateCategoryDto): Promise<CategoryDto> {
         const { name, description } = createCategoryDto;
                 const existingCategory = await this.categoryRepository.findByName(name);
@@ -75,8 +24,49 @@ export class CategoryService {
         };
     }
 
+    // --- GETS ---
+
+    // Obtener todas las categorías (para listados)
+    async findAllCategories(): Promise<CategoryDto[]> {
+        const categories = await this.categoryRepository.findAllCategories();
+        return categories.map(category => ({
+            id: category.id,
+            name: category.name,
+            description: category.description
+        }));
+    }
+
+    // Obtener categoría por ID (detallada para admin)
+    async findById(id: number): Promise<CategoryDto> {
+        if (!id || id <= 0) {
+            throw new BadRequestException("ID de categoría inválido");
+        }
+        const category = await this.categoryRepository.findById(id);
+        if (!category) {
+            throw new NotFoundException("Categoría no encontrada");
+        }
+        return {
+            id: category.id,
+            name: category.name,
+            description: category.description
+        };
+    }
+
+    // Obtener categorías más usadas (Dashboard del admin)
+    async findTopCategories(limit: number): Promise<{ name: string; usage_count: number }[]> {
+        if (!limit || limit <= 0) {
+            throw new BadRequestException("Límite inválido");
+        }
+        const categories = await this.categoryRepository.findTopCategories(limit);
+        return categories.map(category => ({
+            name: category.name,
+            usage_count: category.usage_count
+        }));
+    }
+
     // --- PUTS ---
 
+    // Actualizar categoría
     async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto): Promise<CategoryDto> {
         if (!id || id <= 0) {
             throw new BadRequestException("ID de categoría inválido");
@@ -107,6 +97,7 @@ export class CategoryService {
 
     // --- DELETES ---
 
+    // Eliminar categoría
     async deleteCategory(id: number): Promise<void> {
         if (!id || id <= 0) {
             throw new BadRequestException("ID de categoría inválido");

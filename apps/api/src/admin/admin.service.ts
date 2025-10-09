@@ -84,9 +84,9 @@ export class AdminService {
             
             // Transformar y calcular puntuación de actividad
             const userStats: (UserStatsDto & { activityScore: number })[] = usersData.map(user => {
-                const reports = parseInt(user.reportCount) || 0;
-                const comments = parseInt(user.commentCount) || 0;
-                const likes = parseInt(user.likeCount) || 0;
+                const reports = Number.parseInt(user.reportCount) || 0;
+                const comments = Number.parseInt(user.commentCount) || 0;
+                const likes = Number.parseInt(user.likeCount) || 0;
                 
                 // Calcular puntuación de actividad (puedes ajustar los pesos)
                 const activityScore = (reports * 3) + (comments * 2) + (likes * 1);

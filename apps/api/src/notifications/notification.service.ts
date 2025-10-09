@@ -46,7 +46,7 @@ export class NotificationService {
 
         // Validar que el tipo de notificación existe
         const notificationType = await this.notificationRepository.findNotificationTypeById(typeId);
-        if (!notificationType || !notificationType.is_active) {
+        if (!notificationType?.is_active) {
             throw new BadRequestException("Tipo de notificación inválido o inactivo");
         }
 
@@ -346,7 +346,7 @@ export class NotificationService {
 
         // Validar que el tipo existe
         const type = await this.notificationRepository.findNotificationTypeById(typeId);
-        if (!type || !type.is_active) {
+        if (!type?.is_active){
             throw new BadRequestException("Tipo de notificación inválido o inactivo");
         }
 
@@ -377,7 +377,7 @@ export class NotificationService {
 
             // Verificar que el tipo existe
             const type = await this.notificationRepository.findNotificationTypeById(pref.typeId);
-            if (!type || !type.is_active) {
+            if (!type?.is_active) {
                 throw new BadRequestException(`Tipo de notificación inválido o inactivo: ${pref.typeId}`);
             }
         }

@@ -11,14 +11,24 @@ export type Category = {
 export class CategoryRepository {
     constructor(private readonly dbService: DbService) {}
 
+    // --- POSTS ---
+
+    // Crear categoría
+    async createCategory(name: string, description: string): Promise<void> {
+        const sql = `INSERT INTO category (name, description) VALUES (?, ?)`;
+        await this.dbService.getPool().query(sql, [name, description]);
+    }
+
     // --- GETS ---
 
+    // Obtener todas las categorías (para listados)
     async findAllCategories(): Promise<Category[]> {
         const sql = `SELECT * FROM category`;
         const [rows] = await this.dbService.getPool().query(sql);
         return rows as Category[];
     }
 
+    // Obtener categoría por ID (detalldada para admin)
     async findById(id: number): Promise<Category> {
         const sql = `SELECT * FROM category WHERE id = ? LIMIT 1`;
         const [rows] = await this.dbService.getPool().query(sql, [id]);
@@ -26,6 +36,7 @@ export class CategoryRepository {
         return result[0];
     }
 
+    // Obtener categoría por nombre (Sirve para checar si ya existe una)
     async findByName(name: string): Promise<Category> {
         const sql = `SELECT * FROM category WHERE name = ? LIMIT 1`;
         const [rows] = await this.dbService.getPool().query(sql, [name]);
@@ -33,6 +44,7 @@ export class CategoryRepository {
         return result[0];
     }
 
+    // Obtener categorías más usadas (Dashboard del admin)
     async findTopCategories(limit: number): Promise<{ name: string; usage_count: number }[]> {
         const sql = `
             SELECT c.name, COUNT(r.id) AS usage_count
@@ -46,15 +58,9 @@ export class CategoryRepository {
         return rows as { name: string; usage_count: number }[];
     }
 
-    // --- POSTS ---
-
-    async createCategory(name: string, description: string): Promise<void> {
-        const sql = `INSERT INTO category (name, description) VALUES (?, ?)`;
-        await this.dbService.getPool().query(sql, [name, description]);
-    }
-
     // --- PUTS ---
 
+    // Actualizar categoría
     async updateCategory(id: number, name: string, description: string): Promise<void> {
         const sql = `UPDATE category SET name = ?, description = ? WHERE id = ?`;
         await this.dbService.getPool().query(sql, [name, description, id]);
@@ -62,6 +68,7 @@ export class CategoryRepository {
 
     // --- DELETES ---
 
+    // Eliminar categoría
     async deleteCategory(id: number): Promise<void> {
         const sql = `DELETE FROM category WHERE id = ?`;
         await this.dbService.getPool().query(sql, [id]);

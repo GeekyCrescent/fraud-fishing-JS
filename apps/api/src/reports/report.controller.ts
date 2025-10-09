@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards, Get, Put, Param, Delete, Query } from "@nestjs/common";
 import { ReportService } from "./report.service";
-import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
+import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request";
 import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto } from "./dto/report.dto";
