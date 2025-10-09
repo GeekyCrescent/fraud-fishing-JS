@@ -349,11 +349,8 @@ export default function CrudUsuarios() {
         {detalle && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-              <h3 className="text-lg font-bold mb-1">{detalle.name}</h3>
-              <p className="text-gray-700">{detalle.email}</p>
-              <p className="text-sm text-gray-500 mb-4">
-                Rol: {detalle.is_admin ? "Admin" : "Usuario"}
-              </p>
+              <h3 className="text-lg font-bold">{detalle.name}</h3>
+              <p className="text-gray-700 py-3">{detalle.email}</p>
 
               <div className="grid grid-cols-3 gap-3 mb-4 text-center">
                 <div className="rounded-lg border p-3">
@@ -375,7 +372,7 @@ export default function CrudUsuarios() {
               </div>
 
               <div className="flex justify-end">
-                <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded" onClick={() => setDetalle(null)}>
+                <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded cursor-pointer" onClick={() => setDetalle(null)}>
                   Cerrar
                 </button>
               </div>
