@@ -122,7 +122,7 @@ export default function Login({ setUser }: LoginProps) {
             <button
               type="submit"
               className="w-full py-3 rounded-lg bg-[#00B5BC] text-white 
-                         font-bold text-lg hover:bg-[#009da3] transition-colors"
+                         font-bold text-lg hover:bg-[#009da3] transition-colors cursor-pointer"
             >
               Ingresar
             </button>

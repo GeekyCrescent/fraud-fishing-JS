@@ -188,7 +188,7 @@ export default function CrudCategorias() {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <KpiCard title="Categorías totales" value={total} tone="solid" />
           <KpiCard 
             title="Top 1" 
@@ -395,7 +395,7 @@ function KpiCard({
 
   return (
     <div
-      className={`rounded-2xl ${base} p-5 shadow-sm flex flex-col justify-between`}
+      className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}
     >
       <div className="text-sm opacity-90">{title}</div>
       <div className="mt-2">

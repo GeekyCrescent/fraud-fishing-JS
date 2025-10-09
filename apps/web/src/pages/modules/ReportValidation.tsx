@@ -272,7 +272,7 @@ export default function CrudValidacionReportes() {
             className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition ${
               activeTab === "sin_empezar"
                 ? "bg-teal-50 border-teal-300 text-teal-700"
-                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer"
             }`}
             onClick={() => setActiveTab("sin_empezar")}
           >
@@ -285,7 +285,7 @@ export default function CrudValidacionReportes() {
             className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition ${
               activeTab === "en_progreso"
                 ? "bg-blue-50 border-blue-300 text-blue-700"
-                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer"
             }`}
             onClick={() => setActiveTab("en_progreso")}
           >
@@ -349,7 +349,7 @@ export default function CrudValidacionReportes() {
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select
-                className="border border-gray-300 rounded-md px-2 py-1 bg-white"
+                className="border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
                 value={pageSize}
                 onChange={(e) => {
                   const v = Number(e.target.value);
@@ -456,7 +456,7 @@ export default function CrudValidacionReportes() {
                 </div>
 
                 <button
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded cursor-pointer"
                   onClick={() => setDetalle(null)}
                 >
                   Cerrar
@@ -466,14 +466,14 @@ export default function CrudValidacionReportes() {
               {/* Acciones finales */}
               <div className="flex flex-col sm:flex-row gap-2 justify-end mt-6">
                 <button
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-red-700 border-red-300 hover:bg-red-50"
+                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-red-700 border-red-300 hover:bg-red-50"
                   onClick={() => updateStatus(detalle.id, 4, moderationNote)}
                   title="Denegar (status 4)"
                 >
                   <FiXCircle /> Denegar
                 </button>
                 <button
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white"
+                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white"
                   onClick={() => updateStatus(detalle.id, 3, moderationNote)}
                   title="Aprobar (status 3)"
                 >
@@ -616,7 +616,7 @@ function RowValidacion({
           {isTabPendientes ? (
             // En pestaña "Sin empezar": solo botón directo para mover a progreso
             <button
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium cursor-pointer"
               onClick={onMoveToProgress}
               title="Mover a En progreso (status 2)"
             >
@@ -633,9 +633,9 @@ function RowValidacion({
                 <FiMoreHorizontal />
               </button>
               {open && (
-                <div className="absolute right-0 top-9 w-56 bg-white border rounded shadow z-10">
+                <div className="absolute right-0 top-9 w-56 bg-white border-gray-200 rounded shadow z-10">
                   <button
-                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
+                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       onView();
                       setOpen(false);
@@ -778,7 +778,7 @@ function KpiCard({
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg cursor-pointer`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>

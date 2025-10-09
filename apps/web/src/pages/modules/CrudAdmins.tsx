@@ -313,7 +313,7 @@ export default function CrudAdmins() {
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select
-                className="border border-gray-300 rounded-md px-2 py-1 bg-white"
+                className="border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
                 value={pageSize}
                 onChange={(e) => {
                   const v = Number(e.target.value);
@@ -368,7 +368,7 @@ export default function CrudAdmins() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition ${
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition cursor-pointer ${
                         tipoNuevo === "admin"
                           ? 'bg-teal-50 border-teal-300 text-teal-700'
                           : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -379,7 +379,7 @@ export default function CrudAdmins() {
                     </button>
                     <button
                       type="button"
-                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition ${
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition cursor-pointer ${
                         tipoNuevo === "super_admin"
                           ? 'bg-purple-50 border-purple-300 text-purple-700'
                           : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -394,14 +394,14 @@ export default function CrudAdmins() {
 
               {/* Campos del formulario */}
               <input
-                className="border p-2 rounded w-full mb-3"
+                className="bg-gray-50 p-2 rounded w-full mb-3"
                 placeholder="Nombre"
                 value={nuevo.name}
                 onChange={(e) => setNuevo((n) => ({ ...n, name: e.target.value }))}
                 required
               />
               <input
-                className="border p-2 rounded w-full mb-3"
+                className="bg-gray-50 p-2 rounded w-full mb-3"
                 placeholder="Email"
                 type="email"
                 value={nuevo.email}
@@ -409,7 +409,7 @@ export default function CrudAdmins() {
                 required
               />
               <input
-                className="border p-2 rounded w-full mb-4"
+                className="bg-gray-50 p-2 rounded w-full mb-3"
                 placeholder="Contraseña"
                 type="password"
                 value={nuevo.password}
@@ -432,10 +432,10 @@ export default function CrudAdmins() {
               </div>
 
               {/* Botones */}
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 cursor-pointer">
                 <button 
                   type="button" 
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded transition" 
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded transition cursor-pointer" 
                   onClick={() => {
                     setShowForm(false);
                     setTipoNuevo("admin"); // Reset al cerrar
@@ -445,7 +445,7 @@ export default function CrudAdmins() {
                 </button>
                 <button 
                   type="submit" 
-                  className={`px-4 py-2 text-white rounded transition ${
+                  className={`px-4 py-2 text-white rounded transition cursor-pointer ${
                     tipoNuevo === "super_admin"
                       ? "bg-purple-600 hover:bg-purple-700"
                       : "bg-teal-600 hover:bg-teal-700"
@@ -481,7 +481,7 @@ export default function CrudAdmins() {
               </div>
 
               <div className="flex justify-end">
-                <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg" onClick={() => setDetalle(null)}>
+                <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg cursor-pointer" onClick={() => setDetalle(null)}>
                   Cerrar
                 </button>
               </div>
@@ -511,7 +511,7 @@ function KpiCard({
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>

@@ -438,7 +438,7 @@ export default function CrudReportes() {
                   </div>
                 </div>
                 <button
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded"
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded cursor-pointer"
                   onClick={() => setDetalle(null)}
                 >
                   Cerrar
@@ -495,7 +495,7 @@ export default function CrudReportes() {
                     {siblings.map((s) => (
                       <li
                         key={s.id}
-                        className="border rounded-lg p-3 bg-gray-50"
+                        className=" rounded-lg p-3 bg-gray-50"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div>
@@ -512,7 +512,7 @@ export default function CrudReportes() {
                             <span>👍 {s.voteCount ?? 0}</span>
                             <span>💬 {s.commentCount ?? 0}</span>
                             <button
-                              className="px-3 py-1 border rounded hover:bg-white"
+                              className="px-3 py-1 border rounded hover:bg-gray-100 cursor-pointer"
                               onClick={() => handleVerDetalle(s)}
                             >
                               Ver
@@ -631,7 +631,7 @@ function KpiCard({
       : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>
@@ -735,7 +735,7 @@ function RowReporte({
             <FiMoreHorizontal />
           </button>
           {open && (
-            <div className="absolute right-0 top-9 z-50 w-40 bg-white border shadow-lg rounded">
+            <div className="absolute rounded right-0 top-9 z-50 w-40 bg-white bg-white shadow-lg rounded shadow">
               <button
                 className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
