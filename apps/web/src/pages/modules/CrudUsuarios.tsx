@@ -402,7 +402,7 @@ function KpiCard({
     tone === "solid" ? "text-3xl font-semibold" : "text-3xl font-bold text-teal-700";
 
   return (
-    <div className={`rounded-2xl ${base} p-5 shadow-sm`}>
+    <div className={`rounded-2xl ${base} p-5 shadow-sm transition-transform transform hover:scale-105 hover:shadow-lg`}>
       <div className="text-sm opacity-90">{title}</div>
       <div className={numberStyle}>{value}</div>
     </div>
