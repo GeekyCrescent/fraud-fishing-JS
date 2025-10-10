@@ -160,7 +160,7 @@ export default function DashboardHome() {
             {/* Gráficos */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pie */}
-              <div className="bg-white border rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-lg font-semibold mb-4">Distribución general</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -169,12 +169,12 @@ export default function DashboardHome() {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      label={(entry: any) =>
+                        `${entry.name}: ${(Number(entry.percent ?? 0) * 100).toFixed(0)}%`
                       }
                       dataKey="value"
                     >
-                      {pieData.map((entry, i) => (
+                      {pieData.map((_entry, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
@@ -184,7 +184,7 @@ export default function DashboardHome() {
               </div>
 
               {/* Barras con datos reales */}
-              <div className="bg-white border rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-lg font-semibold mb-4">
                   Actividad mensual (Usuarios / Reportes)
                 </h2>
@@ -202,7 +202,7 @@ export default function DashboardHome() {
             </section>
 
             {/* Línea de crecimiento real */}
-            <section className="bg-white border rounded-2xl shadow-sm p-6">
+            <section className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-semibold mb-4">
                 Crecimiento y tendencia real
               </h2>
@@ -220,12 +220,12 @@ export default function DashboardHome() {
 
             {/* Actividad reciente */}
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <RecentBox title="Últimos reportes" headers={["#", "URL", "Estado"]}
-                data={data.recientes.map((r: any) => [r.id, r.url, r.status ?? "Pendiente"])} />
-              <RecentBox title="Usuarios recientes" headers={["#", "Nombre", "Email"]}
-                data={data.ultimosUsuarios.map((u: any) => [u.id, u.name, u.email])} />
-              <RecentBox title="Top categorías" headers={["#", "Nombre", "Descripción"]}
-                data={data.topCategorias.map((c: any) => [c.id, c.name, c.description])} />
+              <RecentBox title="Últimos reportes" headers={["URL", "Estado"]}
+                data={data.recientes.map((r: any) => [r.url, r.status ?? "Pendiente"])} />
+              <RecentBox title="Usuarios recientes" headers={["Nombre", "Email"]}
+                data={data.ultimosUsuarios.map((u: any) => [u.name, u.email])} />
+              <RecentBox title="Top categorías" headers={["Nombre", "Descripción"]}
+                data={data.topCategorias.map((c: any) => [c.name, c.description])} />
             </section>
           </>
         )}
@@ -266,19 +266,19 @@ function RecentBox({
   data: (string | number)[][];
 }) {
   return (
-    <div className="bg-white border rounded-2xl shadow-sm p-6">
+    <div className="bg-white  rounded-2xl shadow-sm p-6">
       <h2 className="text-lg font-semibold mb-4">{title}</h2>
       <table className="w-full text-sm">
         <thead className="text-gray-600 border-b">
           <tr>
             {headers.map((h, i) => (
-              <th key={i} className="text-left py-2">{h}</th>
+              <th key={i} className="border-b border-gray-200 text-left py-2">{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i} className="border-b last:border-none hover:bg-gray-50 transition">
+            <tr key={i} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition">
               {row.map((cell, j) => (
                 <td key={j} className="py-2">{cell}</td>
               ))}
