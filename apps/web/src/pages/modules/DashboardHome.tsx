@@ -4,9 +4,7 @@ import {
   FiClipboard,
   FiTag,
   FiShield,
-  FiTrendingUp,
   FiCheckCircle,
-  FiAlertTriangle,
 } from "react-icons/fi";
 import {
   PieChart,
@@ -47,6 +45,55 @@ export default function DashboardHome() {
         const ultimosUsuarios = users.slice(-5).reverse();
         const topCategorias = catsRes.slice(0, 5);
 
+        // ===== Calcular datos mensuales reales =====
+        const meses = [
+          "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+
+        const conteoUsuarios: Record<string, number> = {};
+        const conteoReportes: Record<string, number> = {};
+        meses.forEach((m) => {
+          conteoUsuarios[m] = 0;
+          conteoReportes[m] = 0;
+        });
+
+        // Contar usuarios creados por mes
+        users.forEach((u: any) => {
+          if (u.created_at) {
+            const fecha = new Date(u.created_at);
+            const mes = meses[fecha.getMonth()];
+            conteoUsuarios[mes]++;
+          }
+        });
+        
+        // Contar reportes creados por mes (detecta automáticamente el campo de fecha)
+        reportsRes.forEach((r: any) => {
+          const fechaCampo =
+            r.created_at ||
+            r.createdAt ||
+            r.fecha_creacion ||
+            r.date ||
+            r.created ||
+            null;
+
+          if (fechaCampo) {
+            const fecha = new Date(fechaCampo);
+            if (!isNaN(fecha.getTime())) {
+              const mes = meses[fecha.getMonth()];
+              conteoReportes[mes]++;
+            }
+          }
+        });
+
+
+        // Generar dataset para gráficos
+        const barData = meses.map((mes) => ({
+          name: mes,
+          usuarios: conteoUsuarios[mes],
+          reportes: conteoReportes[mes],
+        }));
+
         setData({
           usuarios,
           admins,
@@ -56,6 +103,7 @@ export default function DashboardHome() {
           recientes,
           ultimosUsuarios,
           topCategorias,
+          barData,
         });
       } catch {
         setError("No se pudieron cargar los datos del dashboard.");
@@ -76,14 +124,6 @@ export default function DashboardHome() {
       { name: "Validaciones", value: data.validaciones },
     ];
   }, [data]);
-
-  const barData = [
-    { name: "Enero", reportes: 120, usuarios: 80 },
-    { name: "Febrero", reportes: 140, usuarios: 95 },
-    { name: "Marzo", reportes: 200, usuarios: 120 },
-    { name: "Abril", reportes: 160, usuarios: 130 },
-    { name: "Mayo", reportes: 220, usuarios: 180 },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 py-8 px-4">
@@ -143,13 +183,13 @@ export default function DashboardHome() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Barras */}
+              {/* Barras con datos reales */}
               <div className="bg-white border rounded-2xl shadow-sm p-6">
                 <h2 className="text-lg font-semibold mb-4">
-                  Actividad mensual (demo)
+                  Actividad mensual (Usuarios / Reportes)
                 </h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barData}>
+                  <BarChart data={data.barData}>
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip />
@@ -161,13 +201,13 @@ export default function DashboardHome() {
               </div>
             </section>
 
-            {/* Línea temporal */}
+            {/* Línea de crecimiento real */}
             <section className="bg-white border rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-semibold mb-4">
-                Crecimiento y tendencia (usuarios vs reportes)
+                Crecimiento y tendencia real
               </h2>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={barData}>
+                <LineChart data={data.barData}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
@@ -180,44 +220,12 @@ export default function DashboardHome() {
 
             {/* Actividad reciente */}
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Últimos reportes */}
-              <div className="bg-white border rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">Últimos reportes</h2>
-                <RecentList
-                  headers={["#", "URL", "Estado"]}
-                  data={data.recientes.map((r: any) => [
-                    r.id,
-                    r.url,
-                    r.status ?? "Pendiente",
-                  ])}
-                />
-              </div>
-
-              {/* Nuevos usuarios */}
-              <div className="bg-white border rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">Usuarios recientes</h2>
-                <RecentList
-                  headers={["#", "Nombre", "Email"]}
-                  data={data.ultimosUsuarios.map((u: any) => [
-                    u.id,
-                    u.name,
-                    u.email,
-                  ])}
-                />
-              </div>
-
-              {/* Top categorías */}
-              <div className="bg-white border rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">Top categorías</h2>
-                <RecentList
-                  headers={["#", "Nombre", "Descripción"]}
-                  data={data.topCategorias.map((c: any) => [
-                    c.id,
-                    c.name,
-                    c.description,
-                  ])}
-                />
-              </div>
+              <RecentBox title="Últimos reportes" headers={["#", "URL", "Estado"]}
+                data={data.recientes.map((r: any) => [r.id, r.url, r.status ?? "Pendiente"])} />
+              <RecentBox title="Usuarios recientes" headers={["#", "Nombre", "Email"]}
+                data={data.ultimosUsuarios.map((u: any) => [u.id, u.name, u.email])} />
+              <RecentBox title="Top categorías" headers={["#", "Nombre", "Descripción"]}
+                data={data.topCategorias.map((c: any) => [c.id, c.name, c.description])} />
             </section>
           </>
         )}
@@ -247,39 +255,37 @@ function KpiCard({
   );
 }
 
-/* ====== Mini Tabla ====== */
-function RecentList({
+/* ====== Reusable box for tables ====== */
+function RecentBox({
+  title,
   headers,
   data,
 }: {
+  title: string;
   headers: string[];
   data: (string | number)[][];
 }) {
   return (
-    <table className="w-full text-sm">
-      <thead className="text-gray-600 border-b">
-        <tr>
-          {headers.map((h, i) => (
-            <th key={i} className="text-left py-2">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row, i) => (
-          <tr
-            key={i}
-            className="border-b last:border-none hover:bg-gray-50 transition"
-          >
-            {row.map((cell, j) => (
-              <td key={j} className="py-2">
-                {cell}
-              </td>
+    <div className="bg-white border rounded-2xl shadow-sm p-6">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      <table className="w-full text-sm">
+        <thead className="text-gray-600 border-b">
+          <tr>
+            {headers.map((h, i) => (
+              <th key={i} className="text-left py-2">{h}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i} className="border-b last:border-none hover:bg-gray-50 transition">
+              {row.map((cell, j) => (
+                <td key={j} className="py-2">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
