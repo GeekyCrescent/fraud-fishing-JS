@@ -13,8 +13,8 @@ export class DbService implements OnModuleInit, OnModuleDestroy{
             database: 'fraudfishing',
         })
     }
-    onModuleDestroy() {
-       void this.pool.end();
+    async onModuleDestroy() {
+       await this.pool.end();
     }
 
     getPool():Pool{

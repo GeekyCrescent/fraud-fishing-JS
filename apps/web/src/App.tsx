@@ -1,35 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+
+// Módulos
+import DashboardHome from "./pages/modules/DashboardHome";
+import CrudUsuarios from "./pages/modules/CrudUsuarios";
+import CrudReportes from "./pages/modules/CrudReportes";
+import CrudCategorias from "./pages/modules/CrudCategorias";
+import CrudAdmins from "./pages/modules/CrudAdmins";
+import ReportValidation from "./pages/modules/ReportValidation";
+
+import { useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [, setUser] = useState<{ correo: string } | null>(null);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      {/* Login */}
+      <Route path="/" element={<Login setUser={setUser} />} />
+
+      {/* Dashboard con sidebar */}
+      <Route path="/dashboard" element={<Dashboard />}>
+        <Route index element={<DashboardHome />} />
+        <Route path="usuarios" element={<CrudUsuarios />} />
+        <Route path="reportes" element={<CrudReportes />} />
+        <Route path="categorias" element={<CrudCategorias />} />
+        <Route path="admins" element={<CrudAdmins />} />
+        <Route path="validar" element={<ReportValidation />} />
+      </Route>
+    </Routes>
+  );
 }
 
-export default App
+export default App;
