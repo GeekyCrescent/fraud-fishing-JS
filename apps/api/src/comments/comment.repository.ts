@@ -16,6 +16,17 @@ export type Comment = {
 export class CommentRepository {
     constructor(private readonly dbService: DbService) {}
 
+    // --- POSTS ---
+
+    // Crear un nuevo comentario
+    async createComment(reportId: number, userId: number, title: string, content: string, imageUrl?: string): Promise<void> {
+        const sql = `
+            INSERT INTO comment (report_id, user_id, title, content, image_url) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        await this.dbService.getPool().query(sql, [reportId, userId, title, content, imageUrl || null]);
+    }
+
     // --- GETS ---
 
     async findCommentsByReportId(reportId: number): Promise<Comment[]> {
@@ -41,16 +52,6 @@ export class CommentRepository {
         const [rows] = await this.dbService.getPool().query(sql, [userId, reportId]);
         const result = rows as Comment[];
         return result[0];
-    }
-
-    // --- POSTS ---
-
-    async createComment(reportId: number, userId: number, title: string, content: string, imageUrl?: string): Promise<void> {
-        const sql = `
-            INSERT INTO comment (report_id, user_id, title, content, image_url) 
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        await this.dbService.getPool().query(sql, [reportId, userId, title, content, imageUrl || null]);
     }
 
     // --- PUTS ---
