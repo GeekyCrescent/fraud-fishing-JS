@@ -6,6 +6,15 @@ import { CommentDto, CreateCommentDto, UpdateCommentDto } from "./dto/comment.dt
 export class CommentService {
     constructor(private readonly commentRepository: CommentRepository) {}
 
+    // --- POSTS ---
+
+    async createComment(createCommentDto: CreateCommentDto): Promise<CommentDto> {
+        const { reportId, userId, title, content, imageUrl } = createCommentDto;
+        await this.commentRepository.createComment(reportId, userId, title, content, imageUrl);
+        const newComment = await this.commentRepository.findLatestCommentByUserAndReport(userId, reportId);
+        return this.mapCommentToDto(newComment);
+    }
+
     // --- GETS ---
 
     async findCommentsByReportId(reportId: number): Promise<CommentDto[]> {
@@ -25,16 +34,6 @@ export class CommentService {
             throw new NotFoundException("Comentario no encontrado");
         }
         return this.mapCommentToDto(comment);
-    }
-
-
-    // --- POSTS ---
-
-    async createComment(createCommentDto: CreateCommentDto): Promise<CommentDto> {
-        const { reportId, userId, title, content, imageUrl } = createCommentDto;
-        await this.commentRepository.createComment(reportId, userId, title, content, imageUrl);
-        const newComment = await this.commentRepository.findLatestCommentByUserAndReport(userId, reportId);
-        return this.mapCommentToDto(newComment);
     }
 
     // --- PUTS ---

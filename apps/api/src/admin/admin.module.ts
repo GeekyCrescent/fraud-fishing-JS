@@ -6,9 +6,10 @@ import { ReportRepository } from "../reports/report.repository";
 import { NotificationModule } from "src/notifications/notification.module";
 import { UserModule } from "src/users/user.module";
 import { ReportModule } from "src/reports/report.module";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
-  imports: [NotificationModule, UserModule, ReportModule],
+  imports: [NotificationModule, UserModule, ReportModule, AuthModule],
   controllers: [AdminController],
   providers: [AdminService, UserRepository, ReportRepository], 
   exports: [AdminService] 

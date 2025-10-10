@@ -38,8 +38,52 @@ export type ReportWithStatusAndTags = ReportWithStatus & {
 export class ReportRepository {
     constructor(private readonly dbService: DbService) {}
 
+    // --- POSTS ---
+
+    // Crear un nuevo reporte
+    async createReport(userId: number, categoryId: number, title: string, description: string, url: string, imageUrl?: string): Promise<void> {
+        const sql = `
+            INSERT INTO report (user_id, category_id, title, description, url, image_url, status_id) 
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        `; // status_id = 1 (default, probablemente 'pending')
+        await this.dbService.getPool().query(sql, [userId, categoryId, title, description, url, imageUrl || null]);
+    }
+
+    // Si las tags no existen, créalas y devuelve sus IDs, si existen, devuelve sus IDs
+    async findOrCreateTagsByNames(rawNames: string[]): Promise<number[]> {
+        if (!rawNames?.length) return [];
+        const names = Array.from(new Set(rawNames.map(n => n.trim().toLowerCase()).filter(Boolean)));
+        const conn = await this.dbService.getPool().getConnection();
+        try {
+            await conn.beginTransaction();
+
+            for (const name of names) {
+            await conn.query(`INSERT IGNORE INTO tag (name) VALUES (?)`, [name]);
+            }
+            const [rows] = await conn.query(`SELECT id FROM tag WHERE name IN (${names.map(()=>'?').join(',')})`, names);
+            await conn.commit();
+            return (rows as Array<{id:number}>).map(r => r.id);
+        } catch (e) {
+            await conn.rollback();
+            throw e;
+        } finally {
+            conn.release();
+        }
+    }
+
+    // Asocia tags a un reporte (inserta en tabla intermedia report_tag)
+    async addTagsToReport(reportId: number, tagIds: number[]): Promise<void> {
+        if (!tagIds?.length) return;
+        const values = tagIds.map(() => '(?, ?)').join(',');
+        await this.dbService.getPool().query(
+            `INSERT IGNORE INTO report_tag (report_id, tag_id) VALUES ${values}`,
+            tagIds.flatMap(id => [reportId, id])
+        );
+    }
+
     // --- GETS ---
 
+    // Obtiener el reporte "primario" por URL (el más votado y aprobado)
     async findPrimaryByUrl(url: string): Promise<Report | null> {
         const sql = `
         SELECT * FROM report
@@ -52,6 +96,7 @@ export class ReportRepository {
         return result[0] ?? null;
     }
 
+    // Obtener todos los reportes "hermanos" por URL (los que tienen la misma URL y están aprobados)
     async findSiblingsByUrl(url: string): Promise<Report[]> {
         const sql = `
         SELECT * FROM report
@@ -62,12 +107,14 @@ export class ReportRepository {
         return rows as Report[];
     }
 
+    // Obtener todos los reportes
     async findAllReports(): Promise<Report[]> {
         const sql = `SELECT * FROM report`;
         const [rows] = await this.dbService.getPool().query(sql);
         return rows as Report[];
     }
 
+    // Obtener todos los reportes activos (status_id = 3)
     async findAllActiveReports(): Promise<Report[]> {
         const sql = `SELECT * FROM report WHERE status_id = 3`;
         const [rows] = await this.dbService.getPool().query(sql);
@@ -168,51 +215,6 @@ export class ReportRepository {
         const [rows] = await this.dbService.getPool().query(sql, [userId, url]);
         const result = rows as Report[];
         return result[0];
-    }
-
-    // --- POSTS ---
-
-    async createReport(userId: number, categoryId: number, title: string, description: string, url: string, imageUrl?: string): Promise<void> {
-        const sql = `
-            INSERT INTO report (user_id, category_id, title, description, url, image_url, status_id) 
-            VALUES (?, ?, ?, ?, ?, ?, 1)
-        `; // status_id = 1 (default, probablemente 'pending')
-        await this.dbService.getPool().query(sql, [userId, categoryId, title, description, url, imageUrl || null]);
-    }
-
-    async findOrCreateTagsByNames(rawNames: string[]): Promise<number[]> {
-        if (!rawNames?.length) return [];
-        // normaliza: trim + lower (y opcionalmente guarda displayName distinto si lo quieres)
-        const names = Array.from(new Set(rawNames.map(n => n.trim().toLowerCase()).filter(Boolean)));
-        const conn = await this.dbService.getPool().getConnection();
-        try {
-            await conn.beginTransaction();
-
-            // 1) crea los inexistentes (requiere UNIQUE(name))
-            for (const name of names) {
-            await conn.query(`INSERT IGNORE INTO tag (name) VALUES (?)`, [name]);
-            }
-
-            // 2) obtén IDs
-            const [rows] = await conn.query(`SELECT id FROM tag WHERE name IN (${names.map(()=>'?').join(',')})`, names);
-            await conn.commit();
-            return (rows as Array<{id:number}>).map(r => r.id);
-        } catch (e) {
-            await conn.rollback();
-            throw e;
-        } finally {
-            conn.release();
-        }
-    }
-
-    async addTagsToReport(reportId: number, tagIds: number[]): Promise<void> {
-        if (!tagIds?.length) return;
-        // evita duplicados con UNIQUE(report_id, tag_id) en report_tag
-        const values = tagIds.map(() => '(?, ?)').join(',');
-        await this.dbService.getPool().query(
-            `INSERT IGNORE INTO report_tag (report_id, tag_id) VALUES ${values}`,
-            tagIds.flatMap(id => [reportId, id])
-        );
     }
 
     // --- PUTS ---

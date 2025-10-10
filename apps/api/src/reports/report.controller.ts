@@ -27,7 +27,6 @@ export class ReportController {
     @ApiResponse({ status: 401, description: "Token inválido" })
     @ApiResponse({ status: 500, description: "Error interno del servidor" })
     async createReport(@Req() req: AuthenticatedRequest, @Body() createReportDto: CreateReportDto): Promise<ReportDto | CommentDto> {
-        // Agregar userId del token al DTO
         const reportData = {
             ...createReportDto,
             userId: Number(req.user.profile.id)

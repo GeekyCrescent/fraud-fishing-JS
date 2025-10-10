@@ -46,10 +46,12 @@ export class ReportService {
         return reports.map(report => this.mapReportToDto(report));
     }
 
+    
     async findAllReportsWithStatus(): Promise<ReportDto[]> {
         const reports = await this.reportRepository.findAllReportsWithStatus();
         return reports.map(report => this.mapReportWithStatusToDto(report));
     }
+    
 
     async findById(id: number): Promise<ReportDto> {
         if (!id || id <= 0) {

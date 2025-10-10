@@ -118,20 +118,10 @@ CREATE TABLE IF NOT EXISTS `comment` (
 -- ---------------------------------
 -- 3. Sistema de Notificaciones Simplificado
 -- ---------------------------------
-CREATE TABLE IF NOT EXISTS `notification_type` (
-  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(50) NOT NULL,
-  `description` VARCHAR(255) NOT NULL,
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `notification` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` BIGINT UNSIGNED NOT NULL,
-  `notification_type_id` BIGINT UNSIGNED NOT NULL,
   `title` VARCHAR(255) NOT NULL,
   `message` TEXT NOT NULL,
   `related_id` BIGINT UNSIGNED NULL,
@@ -140,11 +130,9 @@ CREATE TABLE IF NOT EXISTS `notification` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_notification_user` (`user_id`),
-  KEY `fk_notification_type` (`notification_type_id`),
   KEY `idx_is_read` (`is_read`),
   KEY `idx_created_at` (`created_at`),
   CONSTRAINT `fk_notification_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_notification_type` FOREIGN KEY (`notification_type_id`) REFERENCES `notification_type` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------
