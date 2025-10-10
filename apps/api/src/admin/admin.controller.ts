@@ -1,19 +1,23 @@
-import { Body, Controller, Post, Put, Get, Param, Delete } from "@nestjs/common";
+import { Body, Controller, Post, Put, Get, Param, Delete, UseGuards } from "@nestjs/common";
 import { AdminService } from "./admin.service";
-import { ApiBody, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; // Importar ApiOperation y ApiBearerAuth
+import { ApiBody, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; 
 import { UpdateUserDto, UserDto } from "../users/dto/user.dto";
 import { CreateAdminDto } from "./dto/admin.dto";
 import { UserStatsDto, UserStatsResponseDto } from "./dto/user-stats.dto";
+import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
+import { AdminGuard } from "src/common/guards/admin.guard";
 
 @ApiTags("Endpoints de Administrador")
 @Controller("admin")
 export class AdminController {
     constructor(private readonly adminService: AdminService) {}
 
-    // ========== | ADMIN Endpoints | ==========
-
     //  POSTs
+
+    // Registro de administradores 
     @Post("register")
+    @UseGuards(JwtAuthGuard, AdminGuard) 
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Registrar un nuevo administrador' }) 
     @ApiBody({ type: CreateAdminDto })
     @ApiResponse({ status: 201, description: "Administrador registrado exitosamente", type: UserDto }) 
@@ -22,7 +26,10 @@ export class AdminController {
         return this.adminService.registerAdmin(adminDto.email, adminDto.name, adminDto.password);
     }
 
+    // Registro de superadministrador 
     @Post("register-super")
+    @UseGuards(JwtAuthGuard, AdminGuard) 
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Registrar un nuevo superadministrador' }) 
     @ApiBody({ type: CreateAdminDto })
     @ApiResponse({ status: 201, description: "Superadministrador registrado exitosamente", type: UserDto }) 
@@ -31,10 +38,19 @@ export class AdminController {
         return this.adminService.registerSuperAdmin(adminDto.email, adminDto.name, adminDto.password);
     }
 
-    // ========== | USER Endpoints | ==========
+    // Inicializar el primer superadministrador (sin autenticación, solo si no existe ninguno)
+    @Post("init-super")
+    @ApiOperation({ summary: 'Inicializar el primer superadministrador (solo si no existe ninguno)' }) 
+    @ApiBody({ type: CreateAdminDto })
+    @ApiResponse({ status: 201, description: "Superadministrador inicializado exitosamente", type: UserDto })
+    @ApiResponse({ status: 400, description: "El correo electrónico ya está en uso" })
+    async initSuperAdmin(@Body() adminDto: CreateAdminDto): Promise<UserDto | void> {
+        return this.adminService.registerSuperAdmin(adminDto.email, adminDto.name, adminDto.password);
+    }
 
     //  GETs
 
+    // Obtener estadísticas de usuarios con comments y votes y report count
     @Get("user/stats")
     @ApiOperation({ summary: "Obtener estadísticas de usuarios (solo administradores)" })
     @ApiBearerAuth()
@@ -43,14 +59,7 @@ export class AdminController {
         return this.adminService.getUsersWithStats();
     }
 
-    @Get('user/top-active')
-    @ApiOperation({ summary: 'Obtener usuarios más activos' })
-    @ApiBearerAuth()
-    @ApiResponse({ status: 200, description: "Usuarios más activos obtenidos exitosamente"})
-    async getTopActiveUsers(): Promise<UserStatsDto[]> {
-        return this.adminService.getTopActiveUsers(10);
-    }
-
+    // Obtener lista de todos los usuarios
     @Get('user/list')
     @ApiOperation({ summary: 'Obtener lista de todos los usuarios (solo administradores)' }) 
     @ApiBearerAuth() 
@@ -59,6 +68,7 @@ export class AdminController {
         return this.adminService.findAllUsers();
     }
 
+    // Obtener usuario por ID
     @Get('user/:id')
     @ApiOperation({ summary: 'Obtener un usuario por ID (solo administradores)' }) 
     @ApiBearerAuth() 
@@ -70,6 +80,7 @@ export class AdminController {
 
     //  PUTs
 
+    // Actualizar usuario por ID (Nombre y/o contraseña)
     @Put("user/:id")
     @ApiOperation({ summary: 'Actualizar un usuario por ID (solo administradores)' }) 
     @ApiBearerAuth() 
@@ -81,6 +92,8 @@ export class AdminController {
     }
 
     // DELETEs
+
+    // Eliminar usuario por ID
     @Delete("user/:id")
     @ApiOperation({ summary: 'Eliminar un usuario por ID (solo administradores)' }) 
     @ApiBearerAuth() 

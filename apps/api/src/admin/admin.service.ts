@@ -10,10 +10,9 @@ import { UserStatsDto, UserStatsResponseDto } from './dto/user-stats.dto';
 export class AdminService {
     constructor(private readonly userRepository: UserRepository, private readonly reportRepository: ReportRepository) {}
 
-    // ========== | ADMIN Endpoints | ==========
+    //  --- POSTs ---
 
-    //  POSTs
-
+    // Registro de administradores 
     async registerAdmin(email: string, name: string, password: string): Promise<UserDto | void> {
         const existingAdmin = await this.userRepository.findByEmail(email);
         if (existingAdmin) {
@@ -24,6 +23,7 @@ export class AdminService {
         return this.userRepository.registerUser(email, name, hashedPassword, salt, true);
     }
 
+    // Registro de superadministradores (init y register)
     async registerSuperAdmin(email: string, name: string, password: string): Promise<UserDto | void> {
         const existingAdmin = await this.userRepository.findByEmail(email);
         if (existingAdmin) {
@@ -34,15 +34,15 @@ export class AdminService {
         return this.userRepository.registerSuperAdmin(email, name, hashedPassword, salt);
     }
 
-    // ========== | USER Endpoints | ==========
+    //  --- GETs ---
 
-    //  GETs
-
+    // Obtener lista de todos los usuarios (solo administradores)
     async findAllUsers(): Promise<UserDto[]> {
         const users = await this.userRepository.findAll();
         return users.map(user => ({id: user.id, email: user.email, name: user.name, is_admin: user.is_admin ? 1 : 0 }));
     }
 
+    // Obtener usuario por ID (Nombre y correo)
     async findUserById(id: number): Promise<UserDto> {
         const user = await this.userRepository.findById(id);
         if (!user) {
@@ -51,6 +51,7 @@ export class AdminService {
         return { email: user.email, name: user.name };
     }
 
+    // Obtener estadísticas de usuarios con comments y votes y report count
     async getUsersWithStats(): Promise<UserStatsResponseDto> {
         const usersData = await this.userRepository.findAllUsersWithStats();
 
@@ -78,45 +79,9 @@ export class AdminService {
         };
     }
 
-    async getTopActiveUsers(limit: number = 10): Promise<UserStatsDto[]> {
-        try {
-            const usersData = await this.userRepository.findAllUsersWithStats();
-            
-            // Transformar y calcular puntuación de actividad
-            const userStats: (UserStatsDto & { activityScore: number })[] = usersData.map(user => {
-                const reports = Number.parseInt(user.reportCount) || 0;
-                const comments = Number.parseInt(user.commentCount) || 0;
-                const likes = Number.parseInt(user.likeCount) || 0;
-                
-                // Calcular puntuación de actividad (puedes ajustar los pesos)
-                const activityScore = (reports * 3) + (comments * 2) + (likes * 1);
-                
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    is_admin: Boolean(user.is_admin),
-                    reportCount: reports,
-                    commentCount: comments,
-                    likeCount: likes,
-                    created_at: user.created_at,
-                    activityScore,
-                };
-            });
+    //  --- PUTs ---
 
-            // ✅ Separar el ordenamiento en su propia declaración
-            const sortedUsers = userStats.sort((a, b) => b.activityScore - a.activityScore);
-            const topUsers = sortedUsers.slice(0, limit);
-            
-            // Remover activityScore del resultado
-            return topUsers.map(({ activityScore, ...user }) => user);
-        } catch (error) {
-            throw new Error(`Error al obtener usuarios más activos: ${error.message}`);
-        }
-    }
-
-
-    //  PUTs
+    // Actualizar usuario por ID (Nombre y/o contraseña)
     async updateUserById(id: number, updateUserDto: UpdateUserDto): Promise<UserDto> {
         const user = await this.userRepository.findById(id);
         if (!user) {
@@ -135,6 +100,7 @@ export class AdminService {
 
     // DELETEs
 
+    // Eliminar usuario por ID
     async deleteUserById(id: number): Promise<void> {
         const user = await this.userRepository.findById(id);
         if (!user) {

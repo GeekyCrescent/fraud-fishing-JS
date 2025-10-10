@@ -5,11 +5,10 @@ import { UserRepository } from "./user.repository";
 import { AuthModule } from "../auth/auth.module";
 import { ReportModule } from "src/reports/report.module";
 import { NotificationModule } from "src/notifications/notification.module";
-import { UserNotificationController } from "./user-notification.controller";
 
 @Module({
-  imports: [AuthModule, ReportModule, NotificationModule],
-  controllers: [UserController, UserNotificationController],
+  imports: [AuthModule, ReportModule],
+  controllers: [UserController],
   providers: [UserRepository, UserService],
   exports: [UserService, UserRepository]
 })

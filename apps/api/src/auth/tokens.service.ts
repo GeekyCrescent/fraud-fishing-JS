@@ -10,7 +10,7 @@ export type UserProfile ={
 }
 
 export type AccessPayload={
-    sub:string,S
+    sub:string,
     type:"access",
     profile: UserProfile
 }
