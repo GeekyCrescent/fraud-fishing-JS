@@ -206,6 +206,7 @@ export class ReportController {
         return this.reportService.voteReport(Number(id), body.voteType);
     }
 
+    // ... existing code ...
     @Put(':id/status')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
@@ -227,6 +228,7 @@ export class ReportController {
             updateStatusDto.moderationNote
         );
     }
+// ... existing code ...
 
     
     @Put(':id/tags/from-text')
