@@ -3,7 +3,7 @@ import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
 import { AuthModule } from "../auth/auth.module";
-import { ReportModule } from "src/reports/report.module";
+import { ReportModule } from "src/reportTest/report.module";
 import { NotificationModule } from "src/notifications/notification.module";
 
 @Module({

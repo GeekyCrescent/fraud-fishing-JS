@@ -114,13 +114,6 @@ export class ReportRepository {
         return rows as Report[];
     }
 
-    // Obtener todos los reportes activos (status_id = 3)
-    async findAllActiveReports(): Promise<Report[]> {
-        const sql = `SELECT * FROM report WHERE status_id = 3`;
-        const [rows] = await this.dbService.getPool().query(sql);
-        return rows as Report[];
-    }
-
     // Obtener reportes con nombre del status (JOIN)
     async findAllReportsWithStatus(): Promise<ReportWithStatus[]> {
         const sql = `
@@ -240,22 +233,22 @@ export class ReportRepository {
         await this.dbService.getPool().query(sql, [title, description, url, categoryId, imageUrl || null, id]);
     }
 
-    async incrementVoteCount(reportId: number): Promise<void> {
+    async incrementVoteCount(reportId: number, userId: number): Promise<void> {
         const sql = `UPDATE report SET vote_count = vote_count + 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }
 
-    async decrementVoteCount(reportId: number): Promise<void> {
+    async decrementVoteCount(reportId: number, userId: number): Promise<void> {
         const sql = `UPDATE report SET vote_count = vote_count - 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }
 
-    async incrementCommentCount(reportId: number): Promise<void> {
+    async incrementCommentCount(reportId: number, userId: number): Promise<void> {
         const sql = `UPDATE report SET comment_count = comment_count + 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }
 
-    async decrementCommentCount(reportId: number): Promise<void> {
+    async decrementCommentCount(reportId: number, userId: number): Promise<void> {
         const sql = `UPDATE report SET comment_count = comment_count - 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }

@@ -45,20 +45,6 @@ export class ReportController {
         return this.reportService.findAllReports();
     }
 
-    @Get('active')
-    @ApiOperation({ summary: 'Obtener todos los reportes activos' })
-    @ApiResponse({ status: 200, description: "Lista de reportes activos obtenida exitosamente", type: [ReportDto] })
-    @ApiResponse({ status: 500, description: "Error interno del servidor" })
-    async getAllActiveReports(): Promise<ReportDto[]> {
-        return this.reportService.findAllActiveReports();
-    }
-
-    @Get("primary")
-    @ApiOperation({ summary: "Obtener el reporte principal de una URL (más votado)" })
-    @ApiResponse({ status: 200, description: "Reporte principal", type: ReportDto })
-    async getPrimaryByUrl(@Query("url") url: string): Promise<ReportDto> {
-        return this.reportService.findPrimaryByUrl(url);
-    }
 
     // NEW: hermanos por URL (incluye al principal)
     @Get("siblings")
@@ -202,8 +188,13 @@ export class ReportController {
     @ApiResponse({ status: 400, description: "Tipo de voto inválido" })
     @ApiResponse({ status: 401, description: "Token inválido" })
     @ApiResponse({ status: 404, description: "Reporte no encontrado" })
-    async voteReport(@Param('id') id: string, @Body() body: { voteType: 'up' | 'down' }): Promise<ReportDto> {
-        return this.reportService.voteReport(Number(id), body.voteType);
+    async voteReport(
+        @Param('id') id: string, 
+        @Body() body: { voteType: 'up' | 'down' },
+        @Req() req: AuthenticatedRequest  // ← Agregar esto
+    ): Promise<ReportDto> {
+        const userId = Number(req.user.profile.id);  // ← Extraer userId del token
+        return this.reportService.voteReport(Number(id), body.voteType, userId);  // ← Pasar userId
     }
 
     @Put(':id/status')
@@ -264,3 +255,4 @@ export class ReportController {
         await this.reportService.deleteReport(Number(id));
     }
 }
+
