@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-import { NotificationRepository } from "./notification.repository";
+import { NotificationRepository, Notification } from "./notification.repository";
+import { NotificationDto } from "./dto/notification.dto";
 
 // Constantes para los tipos de notificación
 export const NOTIFICATION_TYPES = {
@@ -65,5 +66,42 @@ export class NotificationService {
             `Tu reporte "${reportTitle}" ahora está: ${newStatus}`,
             reportId
         );
+    }
+
+    private mapNotificationToDto(n: Notification): NotificationDto {
+        return {
+            id: n.id,
+            userId: n.user_id,
+            title: n.title,
+            message: n.message,
+            relatedId: n.related_id ?? undefined,
+            isRead: n.is_read,
+            createdAt: new Date(n.created_at).toISOString(),
+            updatedAt: new Date(n.updated_at).toISOString(),
+        };
+    }
+
+    async getNotificationsByUserId(userId: number, limit: number = 50, offset: number = 0): Promise<NotificationDto[]> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        const rows = await this.notificationRepository.findNotificationsByUserId(userId, limit, offset);
+        return rows.map(r => this.mapNotificationToDto(r));
+    }
+
+    async getUnreadNotificationsByUserId(userId: number): Promise<NotificationDto[]> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        const rows = await this.notificationRepository.findUnreadNotificationsByUserId(userId);
+        return rows.map(r => this.mapNotificationToDto(r));
+    }
+
+    async getUnreadCountByUserId(userId: number): Promise<number> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        return this.notificationRepository.getUnreadCountByUserId(userId);
+    }
+
+    async getNotificationById(id: number): Promise<NotificationDto> {
+        if (!id || id <= 0) throw new BadRequestException("ID de notificación inválido");
+        const n = await this.notificationRepository.findById(id);
+        if (!n) throw new NotFoundException("Notificación no encontrada");
+        return this.mapNotificationToDto(n);
     }
 }

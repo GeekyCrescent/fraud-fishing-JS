@@ -328,10 +328,7 @@ export class ReportService {
             await this.createCompletionComment(currentReport, moderatorId, moderationNote);
         }
 
-        // 9. Enviar notificación al autor del reporte
-        await this.sendStatusChangeNotification(currentReport, newStatus.name);
-
-        // 10. Obtener el reporte actualizado
+        // 9. Obtener el reporte actualizado (el trigger ya creó la notificación)
         const updatedReport = await this.reportRepository.findByIdWithStatus(reportId);
         return this.mapReportWithStatusToDto(updatedReport);
     }

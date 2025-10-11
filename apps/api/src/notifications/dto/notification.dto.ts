@@ -30,3 +30,34 @@ export class ReportStatusChangeDto {
     newStatus: string;
 }
 
+export class NotificationDto {
+    @ApiProperty({ example: 1001, description: "ID de la notificación" })
+    id: number;
+
+    @ApiProperty({ example: 42, description: "ID del usuario que recibe la notificación" })
+    userId: number;
+
+    @ApiProperty({ example: "Estado de reporte actualizado", description: "Título de la notificación" })
+    title: string;
+
+    @ApiProperty({ example: "Tu reporte \"Phishing de banco\" ahora está: approved", description: "Mensaje de la notificación" })
+    message: string;
+
+    @ApiProperty({ example: 555, description: "ID relacionado (por ejemplo, el reporte)", required: false })
+    relatedId?: number;
+
+    @ApiProperty({ example: false, description: "Si la notificación fue leída" })
+    isRead: boolean;
+
+    @ApiProperty({ example: "2024-09-30T12:34:56.000Z", description: "Fecha de creación (ISO)" })
+    createdAt: string;
+
+    @ApiProperty({ example: "2024-09-30T12:35:56.000Z", description: "Fecha de actualización (ISO)" })
+    updatedAt: string;
+}
+
+export class UnreadCountDto {
+    @ApiProperty({ example: 3, description: "Cantidad de notificaciones no leídas" })
+    count: number;
+}
+

@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
   KEY `fk_notification_user` (`user_id`),
   KEY `idx_is_read` (`is_read`),
   KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_notification_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_notification_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------
@@ -157,3 +157,25 @@ CREATE TABLE IF NOT EXISTS `report_status_history` (
   CONSTRAINT `fk_history_from_status` FOREIGN KEY (`from_status_id`) REFERENCES `report_status` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_history_to_status` FOREIGN KEY (`to_status_id`) REFERENCES `report_status` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TRIGGER IF EXISTS trg_report_status_change;
+DELIMITER $$
+CREATE TRIGGER trg_report_status_change
+AFTER UPDATE ON report
+FOR EACH ROW
+BEGIN
+    IF NEW.status_id <> OLD.status_id THEN
+        DECLARE new_status_name VARCHAR(50);
+        SELECT rs.name INTO new_status_name FROM report_status rs WHERE rs.id = NEW.status_id LIMIT 1;
+
+        INSERT INTO notification (user_id, title, message, related_id, is_read)
+        VALUES (
+            NEW.user_id,
+            'Estado de reporte actualizado',
+            CONCAT('Tu reporte "', COALESCE(NEW.title, NEW.url), '" ahora está: ', new_status_name),
+            NEW.id,
+            FALSE
+        );
+    END IF;
+END$$
+DELIMITER ;
