@@ -1,3 +1,4 @@
+// ReportRepository (dynamic SQL builder)
 import { Injectable } from "@nestjs/common";
 import { DbService } from "../db/db.service";
 
@@ -344,5 +345,64 @@ export class ReportRepository {
             changeReason, 
             changedByUserId
         ]);
+    }
+
+    async searchReports(filters: {
+        userId?: number;
+        categoryId?: number;
+        url?: string;
+        statusIds?: number[];
+        sort?: "popular" | "recent";
+        includeStatus?: boolean;
+        includeCategory?: boolean;
+        includeUser?: boolean;
+        limit: number;
+        offset: number;
+    }): Promise<any[]> {
+        const selects: string[] = [
+            "r.id", "r.user_id", "r.category_id", "r.title", "r.description", "r.url",
+            "r.status_id", "r.image_url", "r.vote_count", "r.comment_count", "r.created_at", "r.updated_at"
+        ];
+
+        const joins: string[] = [];
+        if (filters.includeStatus) {
+            selects.push("rs.name AS status_name", "rs.description AS status_description");
+            joins.push("LEFT JOIN report_status rs ON r.status_id = rs.id");
+        }
+        if (filters.includeCategory) {
+            // extend with category fields if needed (e.g., c.name AS category_name)
+            joins.push("LEFT JOIN category c ON r.category_id = c.id");
+        }
+        if (filters.includeUser) {
+            // extend with user fields if needed (e.g., u.username AS user_name)
+            joins.push("LEFT JOIN user u ON r.user_id = u.id");
+        }
+
+        const where: string[] = [];
+        const params: any[] = [];
+        if (filters.userId) { where.push("r.user_id = ?"); params.push(filters.userId); }
+        if (filters.categoryId) { where.push("r.category_id = ?"); params.push(filters.categoryId); }
+        if (filters.url) { where.push("r.url = ?"); params.push(filters.url); }
+        if (filters.statusIds?.length) {
+            where.push(`r.status_id IN (${filters.statusIds.map(() => "?").join(",")})`);
+            params.push(...filters.statusIds);
+        }
+
+        let orderBy = "ORDER BY r.created_at DESC";
+        if (filters.sort === "popular") orderBy = "ORDER BY r.vote_count DESC, r.created_at DESC";
+        else if (filters.sort === "recent") orderBy = "ORDER BY r.created_at DESC";
+
+        const sql = `
+            SELECT ${selects.join(", ")}
+            FROM report r
+            ${joins.join(" ")}
+            ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+            ${orderBy}
+            LIMIT ? OFFSET ?
+        `;
+        params.push(filters.limit, filters.offset);
+
+        const [rows] = await this.dbService.getPool().query(sql, params);
+        return rows as any[];
     }
 }
