@@ -1,77 +1,101 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
-import { NotificationService, NOTIFICATION_TYPES } from './notification.service';
-import { NotificationType } from './notification.repository';
+// Importaciones y controlador
+import { Controller, Get, Param, Query, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { NotificationService } from './notification.service';
+import { ApiResponse, ApiTags, ApiOperation, ApiParam, ApiQuery, ApiBearerAuth } from "@nestjs/swagger";
+import { NotificationDto, UnreadCountDto } from './dto/notification.dto';
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request';
 
+@ApiTags("Endpoints de Notificaciones")
 @Controller('notifications')
 export class NotificationController {
     constructor(private readonly notificationService: NotificationService) {}
 
-    // ===== ENDPOINTS PÚBLICOS =====
-
-    @Get('types')
-    async getNotificationTypes(): Promise<NotificationType[]> {
-        return this.notificationService.getNotificationTypes();
+    // Helper de autorización por propiedad
+    private assertAccessToUser(req: AuthenticatedRequest, targetUserId: number): void {
+        const requesterId = Number(req.user.profile.id);
+        const isAdmin = !!req.user.profile.is_admin;
+        if (requesterId !== targetUserId && !isAdmin) {
+            throw new ForbiddenException('Acceso denegado - Solo puedes acceder a tus notificaciones');
+        }
     }
 
-    @Get('types/:id')
-    async getNotificationTypeById(
-        @Param('id', ParseIntPipe) id: number
-    ): Promise<NotificationType> {
-        return this.notificationService.getNotificationTypeById(id);
+    // ===== GET: Todas las notificaciones de un usuario =====
+    @Get('user/:userId')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Listar todas las notificaciones de un usuario' })
+    @ApiParam({ name: 'userId', description: 'ID del usuario', type: 'number', example: 42 })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Límite de resultados', example: 50 })
+    @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Desplazamiento', example: 0 })
+    @ApiResponse({ status: 200, description: 'Lista de notificaciones', type: [NotificationDto] })
+    @ApiResponse({ status: 403, description: 'Acceso denegado' })
+    async getNotificationsByUser(
+        @Req() req: AuthenticatedRequest,
+        @Param('userId') userId: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string
+    ): Promise<NotificationDto[]> {
+        const uid = Number(userId);
+        this.assertAccessToUser(req, uid);
+        const l = limit ? Number(limit) : 50;
+        const o = offset ? Number(offset) : 0;
+        return this.notificationService.getNotificationsByUserId(uid, l, o);
     }
 
-    @Get('constants/types')
-    getNotificationTypeConstants(): typeof NOTIFICATION_TYPES {
-        return NOTIFICATION_TYPES;
+    // ===== GET: Conteo de no leídas =====
+    @Get('user/:userId/unread-count')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Obtener conteo de notificaciones no leídas de un usuario' })
+    @ApiParam({ name: 'userId', description: 'ID del usuario', type: 'number', example: 42 })
+    @ApiResponse({ status: 200, description: 'Conteo de no leídas', type: UnreadCountDto })
+    @ApiResponse({ status: 403, description: 'Acceso denegado' })
+    async getUnreadCount(
+        @Req() req: AuthenticatedRequest,
+        @Param('userId') userId: string
+    ): Promise<UnreadCountDto> {
+        const uid = Number(userId);
+        this.assertAccessToUser(req, uid);
+        const count = await this.notificationService.getUnreadCountByUserId(uid);
+        return { count };
     }
 
-    // ===== ENDPOINTS INTERNOS PARA OTROS SERVICIOS =====
-
-    @Post('internal/report-status-change')
-    async notifyReportStatusChange(@Body() body: {
-        userId: number;
-        reportId: number;
-        reportTitle: string;
-        newStatus: string;
-    }): Promise<{ message: string }> {
-        await this.notificationService.notifyReportStatusChange(
-            body.userId,
-            body.reportId,
-            body.reportTitle,
-            body.newStatus
-        );
-        return { message: 'Notificación de cambio de estado enviada' };
+    // ===== GET: No leídas =====
+    @Get('user/:userId/unread')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Listar notificaciones no leídas de un usuario' })
+    @ApiParam({ name: 'userId', description: 'ID del usuario', type: 'number', example: 42 })
+    @ApiResponse({ status: 200, description: 'Lista de no leídas', type: [NotificationDto] })
+    @ApiResponse({ status: 403, description: 'Acceso denegado' })
+    async getUnread(
+        @Req() req: AuthenticatedRequest,
+        @Param('userId') userId: string
+    ): Promise<NotificationDto[]> {
+        const uid = Number(userId);
+        this.assertAccessToUser(req, uid);
+        return this.notificationService.getUnreadNotificationsByUserId(uid);
     }
 
-    @Post('internal/new-comment')
-    async notifyNewComment(@Body() body: {
-        userId: number;
-        reportId: number;
-        reportTitle: string;
-        commenterName: string;
-    }): Promise<{ message: string }> {
-        await this.notificationService.notifyNewComment(
-            body.userId,
-            body.reportId,
-            body.reportTitle,
-            body.commenterName
-        );
-        return { message: 'Notificación de nuevo comentario enviada' };
-    }
-
-    @Post('internal/report-trending')
-    async notifyReportTrending(@Body() body: {
-        userId: number;
-        reportId: number;
-        reportTitle: string;
-        voteCount: number;
-    }): Promise<{ message: string }> {
-        await this.notificationService.notifyReportTrending(
-            body.userId,
-            body.reportId,
-            body.reportTitle,
-            body.voteCount
-        );
-        return { message: 'Notificación de reporte trending enviada' };
+    // ===== GET: Detalle por ID =====
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Obtener detalle de una notificación por su ID' })
+    @ApiParam({ name: 'id', description: 'ID de la notificación', type: 'number', example: 1001 })
+    @ApiResponse({ status: 200, description: 'Notificación encontrada', type: NotificationDto })
+    @ApiResponse({ status: 403, description: 'Acceso denegado' })
+    async getById(
+        @Req() req: AuthenticatedRequest,
+        @Param('id') id: string
+    ): Promise<NotificationDto> {
+        const n = await this.notificationService.getNotificationById(Number(id));
+        const requesterId = Number(req.user.profile.id);
+        const isAdmin = !!req.user.profile.is_admin;
+        if (n.userId !== requesterId && !isAdmin) {
+            throw new ForbiddenException('Acceso denegado - Esta notificación no es tuya');
+        }
+        return n;
     }
 }

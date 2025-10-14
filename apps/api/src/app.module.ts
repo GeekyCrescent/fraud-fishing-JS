@@ -8,7 +8,7 @@ import { UserModule } from './users/user.module';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
-import { ReportModule } from './reportTest/report.module';
+import { ReportModule } from './reports/report.module';
 import { CategoryModule } from './categories/category.module';
 
 @Module({

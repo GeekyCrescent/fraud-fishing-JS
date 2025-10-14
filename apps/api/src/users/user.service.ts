@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from "@nestjs/common";
 import { User, UserRepository } from "./user.repository";
 import { sha256 } from "../util/crypto/hash.util";
-import { ReportRepository } from "../reportTest/report.repository";
+import { ReportRepository } from "../reports/report.repository";
 import { UserDto, CreateUserDto, UpdateUserDto, LoginDto } from "./dto/user.dto";
 
 

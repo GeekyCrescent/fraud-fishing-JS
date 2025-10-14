@@ -1,3 +1,4 @@
+// ReportService (dynamic search)
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Report, ReportRepository, ReportWithStatus } from "./report.repository";
 import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto } from "./dto/report.dto";
@@ -323,10 +324,7 @@ export class ReportService {
             await this.createCompletionComment(currentReport, moderatorId, moderationNote);
         }
 
-        // 9. Enviar notificación al autor del reporte
-        await this.sendStatusChangeNotification(currentReport, newStatus.name);
-
-        // 10. Obtener el reporte actualizado
+        // 9. Obtener el reporte actualizado (el trigger ya creó la notificación)
         const updatedReport = await this.reportRepository.findByIdWithStatus(reportId);
         return this.mapReportWithStatusToDto(updatedReport);
     }
@@ -417,6 +415,88 @@ export class ReportService {
             createdAt: report.created_at,
             updatedAt: report.updated_at
         };
+    }
+
+    async searchReports(options: {
+        status?: string;
+        userId?: number;
+        categoryId?: number;
+        url?: string;
+        sort?: "popular" | "recent";
+        include?: string[];
+        page?: number;
+        limit?: number;
+    }): Promise<ReportDto[]> {
+        const include = options.include || [];
+        const includeStatus = include.includes("status");
+        const includeCategory = include.includes("category");
+        const includeUser = include.includes("user");
+        const includeTags = include.includes("tags");
+
+        // status mapping
+        let statusIds: number[] | undefined;
+        const s = (options.status || "").trim();
+        if (s) {
+            if (s === "active") statusIds = [1, 2];
+            else if (s === "completed") statusIds = [3, 4];
+            else if (s === "primary") statusIds = undefined; // handled at controller
+            else if (!Number.isNaN(Number(s))) statusIds = [Number(s)];
+        }
+
+        const page = options.page && options.page > 0 ? options.page : 1;
+        const limit = options.limit && options.limit > 0 ? Math.min(options.limit, 100) : 20;
+        const offset = (page - 1) * limit;
+
+        const rows = await this.reportRepository.searchReports({
+            userId: options.userId,
+            categoryId: options.categoryId,
+            url: options.url?.trim(),
+            statusIds,
+            sort: options.sort,
+            includeStatus,
+            includeCategory,
+            includeUser,
+            limit,
+            offset,
+        });
+
+        const dtos = rows.map(r => this.mapDynamicRowToDto(r, { includeStatus, includeCategory, includeUser }));
+
+        if (includeTags && dtos.length) {
+            const withTags = await Promise.all(
+                dtos.map(async d => {
+                    const tags = await this.findTagsByReportId(d.id);
+                    d.tags = tags;
+                    return d;
+                })
+            );
+            return withTags;
+        }
+        return dtos;
+    }
+
+    private mapDynamicRowToDto(row: any, opts: { includeStatus: boolean; includeCategory: boolean; includeUser: boolean; }): ReportDto {
+        const base: ReportDto = {
+            id: row.id,
+            userId: row.user_id,
+            categoryId: row.category_id,
+            title: row.title,
+            description: row.description,
+            url: row.url,
+            statusId: row.status_id,
+            imageUrl: row.image_url,
+            voteCount: row.vote_count,
+            commentCount: row.comment_count,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+        } as ReportDto;
+
+        if (opts.includeStatus) {
+            base.statusName = row.status_name;
+            base.statusDescription = row.status_description;
+        }
+        // category/user names can be extended here if you add columns
+        return base;
     }
 }
 
