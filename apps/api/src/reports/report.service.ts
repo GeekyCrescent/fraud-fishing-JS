@@ -41,19 +41,12 @@ export class ReportService {
         const reports = await this.reportRepository.findAllReports();
         return reports.map(report => this.mapReportToDto(report));
     }
-
-    async findAllActiveReports(): Promise<ReportDto[]> {
-        const reports = await this.reportRepository.findAllActiveReports();
-        return reports.map(report => this.mapReportToDto(report));
-    }
-
     
     async findAllReportsWithStatus(): Promise<ReportDto[]> {
         const reports = await this.reportRepository.findAllReportsWithStatus();
         return reports.map(report => this.mapReportWithStatusToDto(report));
     }
     
-
     async findById(id: number): Promise<ReportDto> {
         if (!id || id <= 0) {
             throw new BadRequestException("ID de reporte inválido");
@@ -223,22 +216,24 @@ export class ReportService {
 
     // --- VOTING ---
 
-    async voteReport(reportId: number, voteType: 'up' | 'down'): Promise<ReportDto> {
+    async voteReport(reportId: number, voteType: 'up' | 'down', userId: number): Promise<ReportDto> {
         if (!reportId || reportId <= 0) {
             throw new BadRequestException("ID de reporte inválido");
         }
-
+        if (!userId || userId <= 0) {
+            throw new BadRequestException("Usuario inválido");
+        }
         const report = await this.reportRepository.findById(reportId);
         if (!report) {
             throw new NotFoundException("Reporte no encontrado");
         }
 
-        if (voteType === 'up') {
-            await this.reportRepository.incrementVoteCount(reportId);
+        if (voteType === 'down') {
+            await this.reportRepository.decrementVoteCount(reportId, userId);
         } else {
-            await this.reportRepository.decrementVoteCount(reportId);
+            await this.reportRepository.incrementVoteCount(reportId, userId);
         }
-
+        
         const updatedReport = await this.reportRepository.findById(reportId);
         return this.mapReportToDto(updatedReport);
     }
@@ -504,4 +499,6 @@ export class ReportService {
         return base;
     }
 }
+
+
 
