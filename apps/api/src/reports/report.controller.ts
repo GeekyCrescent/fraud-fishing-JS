@@ -59,82 +59,93 @@ export class ReportController {
     return this.reportService.createReport(reportData);
   }
 
-  // ====== GET UNIFICADO ======
-  @Get()
-  @ApiOperation({ summary: "Buscar reportes (endpoint unificado con filtros)" })
-  @ApiQuery({ name: "status", required: false, description: 'Puede ser "active", "completed", "primary" o un ID numérico' })
-  @ApiQuery({ name: "userId", required: false, type: Number })
-  @ApiQuery({ name: "categoryId", required: false, type: Number })
-  @ApiQuery({ name: "url", required: false, type: String })
-  @ApiQuery({ name: "sort", required: false, enum: ["popular", "recent"] })
-  @ApiQuery({
-    name: "include",
-    required: false,
-    isArray: true,
-    enum: ["status", "category", "user", "tags"],
-  })
-  @ApiQuery({ name: "siblings", required: false, type: Boolean })
-  @ApiQuery({ name: "page", required: false, type: Number })
-  @ApiQuery({ name: "limit", required: false, type: Number })
-  async searchReports(
-    @Query("status") status?: string,
-    @Query("userId") userIdRaw?: string,
-    @Query("categoryId") categoryIdRaw?: string,
-    @Query("url") url?: string,
-    @Query("sort") sort?: "popular" | "recent",
-    @Query("include") includeRaw?: string[] | string,
-    @Query("siblings") siblingsRaw?: string,
-    @Query("page") pageRaw?: string,
-    @Query("limit") limitRaw?: string
-  ): Promise<ReportDto[]> {
-    const userId = userIdRaw ? Number(userIdRaw) : undefined;
-    const categoryId = categoryIdRaw ? Number(categoryIdRaw) : undefined;
-    const page = pageRaw ? Number(pageRaw) : undefined;
-    const limit = limitRaw ? Number(limitRaw) : undefined;
-    const siblings = (siblingsRaw ?? "").toString().toLowerCase() === "true";
+// ====== GET UNIFICADO ======
+@Get()
+@ApiOperation({ summary: "Buscar reportes (endpoint unificado con filtros o por ID)" })
+@ApiQuery({ name: "id", required: false, type: Number, description: "ID del reporte (si se incluye, ignora los demás filtros)" })
+@ApiQuery({ name: "status", required: false, description: 'Puede ser "Pendiente", "En revisión", "Aprobado", "Rechazado" o un ID numérico' })
+@ApiQuery({ name: "userId", required: false, type: Number })
+@ApiQuery({ name: "categoryId", required: false, type: Number })
+@ApiQuery({ name: "url", required: false, type: String })
+@ApiQuery({ name: "sort", required: false, enum: ["popular", "recent"] })
+@ApiQuery({
+  name: "include",
+  required: false,
+  isArray: true,
+  enum: ["status", "category", "user", "tags"],
+})
+@ApiQuery({ name: "siblings", required: false, type: Boolean })
+@ApiQuery({ name: "page", required: false, type: Number })
+@ApiQuery({ name: "limit", required: false, type: Number })
+async searchReports(
+  @Query("id") idRaw?: string,
+  @Query("status") status?: string,
+  @Query("userId") userIdRaw?: string,
+  @Query("categoryId") categoryIdRaw?: string,
+  @Query("url") url?: string,
+  @Query("sort") sort?: "popular" | "recent",
+  @Query("include") includeRaw?: string[] | string,
+  @Query("siblings") siblingsRaw?: string,
+  @Query("page") pageRaw?: string,
+  @Query("limit") limitRaw?: string
+): Promise<ReportDto[] | ReportDto> {
+  const id = idRaw ? Number(idRaw) : undefined;
+  const userId = userIdRaw ? Number(userIdRaw) : undefined;
+  const categoryId = categoryIdRaw ? Number(categoryIdRaw) : undefined;
+  const page = pageRaw ? Number(pageRaw) : undefined;
+  const limit = limitRaw ? Number(limitRaw) : undefined;
+  const siblings = (siblingsRaw ?? "").toString().toLowerCase() === "true";
 
-    const include = Array.isArray(includeRaw)
-      ? includeRaw.flatMap((v) =>
-          (v || "")
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        )
-      : includeRaw
-      ? includeRaw.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
+  const include = Array.isArray(includeRaw)
+    ? includeRaw.flatMap((v) =>
+        (v || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      )
+    : includeRaw
+    ? includeRaw.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
 
-    // Siblings (hermanos por URL)
-    if (siblings) {
-      if (!url || !url.trim()) {
-        throw new BadRequestException('Se requiere "url" para siblings=true');
-      }
-      return this.reportService.findSiblingsByUrl(url.trim());
-    }
-
-    // Reporte principal (primary)
-    if ((status ?? "").trim().toLowerCase() === "primary") {
-      if (!url || !url.trim()) {
-        throw new BadRequestException('Se requiere "url" para status=primary');
-      }
-      const primary = await this.reportService.findPrimaryByUrl(url.trim());
-      return primary ? [primary] : [];
-    }
-
-    // Búsqueda general dinámica
-    return this.reportService.searchReports({
-      status,
-      userId,
-      categoryId,
-      url,
-      sort,
-      include,
-      page,
-      limit,
-    });
+  // 🟩 1. Buscar por ID (prioritario)
+  if (id) {
+    const report = await this.reportService.findById(id);
+    if (!report) throw new BadRequestException(`No se encontró el reporte con id=${id}`);
+    return report;
   }
 
-  // ====== GET BY ID ======
+  // 🟨 2. Siblings (hermanos por URL)
+  if (siblings) {
+    if (!url || !url.trim()) {
+      throw new BadRequestException('Se requiere "url" para siblings=true');
+    }
+    return this.reportService.findSiblingsByUrl(url.trim());
+  }
+
+  // 🟦 3. Reporte principal (primary)
+  if ((status ?? "").trim().toLowerCase() === "primary") {
+    if (!url || !url.trim()) {
+      throw new BadRequestException('Se requiere "url" para status=primary');
+    }
+    const primary = await this.reportService.findPrimaryByUrl(url.trim());
+    return primary ? [primary] : [];
+  }
+
+  // 🟪 4. Búsqueda general con filtros
+  return this.reportService.searchReports({
+    status,
+    userId,
+    categoryId,
+    url,
+    sort,
+    include,
+    page,
+    limit,
+  });
+}
+
+
+  /*// ====== GET BY ID ======
   @Get(":id")
   @ApiOperation({ summary: "Obtener un reporte por ID" })
   @ApiParam({ name: "id", description: "ID del reporte", type: "number" })
@@ -155,7 +166,7 @@ export class ReportController {
     @Param("id") id: string
   ): Promise<{ categoryName: string }> {
     return this.reportService.findCategoryByReportId(Number(id));
-  }
+  }*/
 
   // ====== PUT ======
   @Put(":id")
