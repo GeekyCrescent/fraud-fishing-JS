@@ -5,7 +5,7 @@ import { UserRepository } from "../users/user.repository";
 import { ReportRepository } from "../reports/report.repository";
 import { NotificationModule } from "src/notifications/notification.module";
 import { UserModule } from "src/users/user.module";
-import { ReportModule } from "src/reportTest/report.module";
+import { ReportModule } from "../reports/report.module";
 import { AuthModule } from "src/auth/auth.module";
 
 @Module({

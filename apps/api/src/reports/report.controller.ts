@@ -152,9 +152,9 @@ async searchReports(
   @ApiResponse({ status: 200, type: ReportDto })
   async getReportById(@Param("id") id: string): Promise<ReportDto> {
     return this.reportService.findById(Number(id));
-  }
+  }*/
 
-  @Get(":id/tags")
+  /*@Get(":id/tags")
   @ApiOperation({ summary: "Obtener tags asociados a un reporte" })
   async getTagsByReportId(@Param("id") id: string): Promise<TagDto[]> {
     return this.reportService.findTagsByReportId(Number(id));
@@ -180,6 +180,7 @@ async searchReports(
     return this.reportService.updateReportById(Number(id), updateReportDto);
   }
 
+
   @Put(":id/vote")
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -194,9 +195,11 @@ async searchReports(
   })
   async voteReport(
     @Param("id") id: string,
-    @Body() body: { voteType: "up" | "down" }
+    @Body() body: { voteType: "up" | "down" },
+    @Req() req: AuthenticatedRequest
   ): Promise<ReportDto> {
-    return this.reportService.voteReport(Number(id), body.voteType);
+    const userId = Number(req.user.profile.id); // ✅ obtenemos el userId del token
+    return this.reportService.voteReport(Number(id), body.voteType, userId);
   }
 
   @Put(":id/status")
