@@ -52,8 +52,9 @@ export class AdminController {
 
     // Obtener estadísticas de usuarios con comments y votes y report count
     @Get("user/stats")
+    @UseGuards(JwtAuthGuard, AdminGuard)
+    @ApiBearerAuth() 
     @ApiOperation({ summary: "Obtener estadísticas de usuarios (solo administradores)" })
-    @ApiBearerAuth()
     @ApiResponse({ status: 200, description: "Estadísticas de usuarios obtenidas exitosamente" })
     async getUserWithStats(): Promise<UserStatsResponseDto> {
         return this.adminService.getUsersWithStats();
@@ -61,8 +62,9 @@ export class AdminController {
 
     // Obtener lista de todos los usuarios
     @Get('user/list')
-    @ApiOperation({ summary: 'Obtener lista de todos los usuarios (solo administradores)' }) 
+    @UseGuards(JwtAuthGuard, AdminGuard)
     @ApiBearerAuth() 
+    @ApiOperation({ summary: 'Obtener lista de todos los usuarios (solo administradores)' }) 
     @ApiResponse({ status: 200, description: "Lista de usuarios obtenida exitosamente", type: [UserDto] }) 
     async findAllUsers(): Promise<UserDto[]> {
         return this.adminService.findAllUsers();
@@ -70,8 +72,9 @@ export class AdminController {
 
     // Obtener usuario por ID
     @Get('user/:id')
-    @ApiOperation({ summary: 'Obtener un usuario por ID (solo administradores)' }) 
+    @UseGuards(JwtAuthGuard, AdminGuard)
     @ApiBearerAuth() 
+    @ApiOperation({ summary: 'Obtener un usuario por ID (solo administradores)' }) 
     @ApiResponse({ status: 200, description: "Usuario obtenido exitosamente", type: UserDto }) 
     @ApiResponse({ status: 404, description: "Usuario no encontrado" })
     async findUserById(@Param('id') id: string): Promise<UserDto> {
@@ -82,8 +85,9 @@ export class AdminController {
 
     // Actualizar usuario por ID (Nombre y/o contraseña)
     @Put("user/:id")
+    @UseGuards(JwtAuthGuard, AdminGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Actualizar un usuario por ID (solo administradores)' }) 
-    @ApiBearerAuth() 
     @ApiBody({ type: UpdateUserDto })
     @ApiResponse({ status: 200, description: "Usuario actualizado exitosamente", type: UserDto }) 
     @ApiResponse({ status: 404, description: "Usuario no encontrado" })
@@ -95,6 +99,7 @@ export class AdminController {
 
     // Eliminar usuario por ID
     @Delete("user/:id")
+    @UseGuards(JwtAuthGuard, AdminGuard)
     @ApiOperation({ summary: 'Eliminar un usuario por ID (solo administradores)' }) 
     @ApiBearerAuth() 
     @ApiResponse({ status: 200, description: "Usuario eliminado exitosamente" }) 

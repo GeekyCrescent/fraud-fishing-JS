@@ -319,48 +319,12 @@ export class ReportService {
             moderatorId
         );
 
-        // 8. Crear comentario automático para status "completed"
-        if (newStatus.name.toLowerCase() === 'completed') {
-            await this.createCompletionComment(currentReport, moderatorId, moderationNote);
-        }
-
         // 9. Obtener el reporte actualizado (el trigger ya creó la notificación)
         const updatedReport = await this.reportRepository.findByIdWithStatus(reportId);
         return this.mapReportWithStatusToDto(updatedReport);
     }
 
     // ===== MÉTODOS HELPER =====
-
-    private async createCompletionComment(
-        report: ReportWithStatus,
-        moderatorId: number,
-        moderationNote?: string
-    ): Promise<void> {
-        try {
-            let commentContent = '✅ **Reporte Completado**\n\n';
-            commentContent += 'Este reporte ha sido marcado como **completado** por nuestro equipo de moderación. ';
-            commentContent += 'Las acciones necesarias han sido tomadas para abordar esta amenaza de seguridad.\n\n';
-            
-            if (moderationNote?.trim()) {
-                commentContent += `**Nota del moderador:** ${moderationNote.trim()}\n\n`;
-            }
-            
-            commentContent += '¡Gracias por ayudar a mantener internet más seguro! 🛡️';
-
-            const createCommentDto: CreateCommentDto = {
-                reportId: report.id,
-                userId: moderatorId,
-                title: '✅ Reporte Completado',
-                content: commentContent,
-                imageUrl: undefined
-            };
-
-            await this.commentService.createComment(createCommentDto);
-        } catch (error) {
-            // Log del error pero no fallar la operación principal
-            console.error('Error creando comentario de completación:', error);
-        }
-    }
 
     // --- HELPER METHODS ---
 
