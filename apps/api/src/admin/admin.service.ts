@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../users/user.repository';
 import { UserDto, UpdateUserDto } from '../users/dto/user.dto';
 import { ReportRepository } from '../reports/report.repository';
-import { sha256 } from 'src/util/crypto/hash.util';
+import { sha256, generateSalt } from 'src/util/crypto/hash.util';
 import { UserStatsDto, UserStatsResponseDto } from './dto/user-stats.dto';
 
 
@@ -18,8 +18,8 @@ export class AdminService {
         if (existingAdmin) {
             throw new Error('El correo electrónico ya está en uso');
         }
-        const salt = "salt";
-        const hashedPassword = sha256(password);
+        const salt = generateSalt();
+        const hashedPassword = sha256(password + salt);
         return this.userRepository.registerUser(email, name, hashedPassword, salt, true);
     }
 
@@ -29,8 +29,8 @@ export class AdminService {
         if (existingAdmin) {
             throw new Error('El correo electrónico ya está en uso');
         }
-        const salt = "salt";
-        const hashedPassword = sha256(password);
+        const salt = generateSalt();
+        const hashedPassword = sha256(password + salt);
         return this.userRepository.registerSuperAdmin(email, name, hashedPassword, salt);
     }
 
@@ -93,6 +93,10 @@ export class AdminService {
         if (updateUserDto.password !== undefined) {
             user.password_hash = sha256(updateUserDto.password);
         }
+        if (updateUserDto.email !== undefined) {
+            user.email = updateUserDto.email;
+        }
+        
         await this.userRepository.updateUser(user);
         
         return { email: user.email, name: user.name };
