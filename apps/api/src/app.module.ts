@@ -10,13 +10,14 @@ import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ReportModule } from './reports/report.module';
 import { CategoryModule } from './categories/category.module';
+import { FilesModule } from './files/file.module';
 
 @Module({
   imports: [JwtModule.register({
       global: true,
       secret:"supersecret"
   }), 
-  DbModule, UserModule, AuthModule, AdminModule, ReportModule, CategoryModule],
+  DbModule, UserModule, AuthModule, AdminModule, ReportModule, CategoryModule, FilesModule],
   controllers: [AppController],
   providers: [AppService],
 })

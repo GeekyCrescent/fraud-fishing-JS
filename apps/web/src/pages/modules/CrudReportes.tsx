@@ -67,7 +67,7 @@ export default function CrudReportes() {
   const fetchReportes = async () => {
     setError("");
     try {
-      const res = await fetch(`${API}/reports/active`);
+      const res = await fetch(`${API}/reports?status=3`)
       if (!res.ok) throw new Error();
       const data: Report[] = await res.json();
       setReportes(data ?? []);
@@ -82,6 +82,8 @@ export default function CrudReportes() {
     try {
       const res = await fetch(`${API}/reports/${reportId}/tags`);
       if (!res.ok) throw new Error();
+      console.log("Tags del reporte cargados");
+      console.log(res);
       const tags: Tag[] = await res.json();
       return tags;
     } catch {
@@ -96,6 +98,7 @@ export default function CrudReportes() {
       const res = await fetch(`${API}/reports/${reportId}/category`);
       if (!res.ok) throw new Error();
       const response: { categoryName: string } = await res.json();
+      console.log(res);
       return response.categoryName;
     } catch {
       console.error("Error al cargar categoría del reporte");
@@ -103,7 +106,7 @@ export default function CrudReportes() {
     }
   };
 
-  
+
   const fetchUserDetails = async (userId: number) => {
     try {
       const res = await fetch(`${API}/admin/user/stats`, {
@@ -223,7 +226,7 @@ export default function CrudReportes() {
     setSiblings(null);
     try {
       const res = await fetch(
-        `${API}/reports/siblings?url=${encodeURIComponent(url)}`
+        `${API}/reports?url=${encodeURIComponent(url)}`
       );
       if (!res.ok) throw new Error();
       const data: Sibling[] = await res.json();
