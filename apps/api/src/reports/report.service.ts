@@ -2,7 +2,6 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Report, ReportRepository, ReportWithStatus } from "./report.repository";
 import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto } from "./dto/report.dto";
-import { CreateCommentDto } from "src/comments/dto/comment.dto";
 import { CommentService } from "src/comments/comment.service";
 import { NotificationService } from '../notifications/notification.service'; // ← Agregar
 
@@ -15,27 +14,6 @@ export class ReportService {
     ) {}
 
     // --- GETS ---
-
-    async findPrimaryByUrl(rawUrl: string): Promise<ReportDto> {
-        const url = (rawUrl ?? "").trim();
-        if (!url) throw new BadRequestException("URL es requerida");
-
-        const report = await this.reportRepository.findPrimaryByUrl(url);
-        if (!report) throw new NotFoundException("No hay reportes para esa URL");
-
-        return this.mapReportToDto(report);
-    }
-
-  // NEW: hermanos por URL
-    async findSiblingsByUrl(rawUrl: string): Promise<ReportDto[]> {
-        const url = (rawUrl ?? "").trim();
-        if (!url) throw new BadRequestException("URL es requerida");
-
-        const reports = await this.reportRepository.findSiblingsByUrl(url);
-        if (!reports || reports.length === 0) return [];
-
-        return reports.map(r => this.mapReportToDto(r));
-    }
 
     async findAllReports(): Promise<ReportDto[]> {
         const reports = await this.reportRepository.findAllReports();
@@ -85,25 +63,7 @@ export class ReportService {
 
         return this.mapReportToDto(report);
     }
-
-    async findReportsByCategory(categoryId: number): Promise<ReportDto[]> {
-        if (!categoryId || categoryId <= 0) {
-            throw new BadRequestException("ID de categoría inválido");
-        }
-
-        const reports = await this.reportRepository.findReportsByCategory(categoryId);
-        return reports.map(report => this.mapReportToDto(report));
-    }
-
-    async findReportsByStatus(statusId: number): Promise<ReportDto[]> {
-        if (!statusId || statusId <= 0) {
-            throw new BadRequestException("ID de status inválido");
-        }
-
-        const reports = await this.reportRepository.findReportsByStatusId(statusId);
-        return reports.map(report => this.mapReportToDto(report));
-    }
-
+    
     async findPopularReports(limit: number = 10): Promise<ReportDto[]> {
         if (limit <= 0 || limit > 100) {
             throw new BadRequestException("Límite debe estar entre 1 y 100");
@@ -216,7 +176,7 @@ export class ReportService {
 
     // --- VOTING ---
 
-    async voteReport(reportId: number, voteType: 'up' | 'down', userId: number): Promise<ReportDto> {
+    async voteReport(reportId: number, userId: number): Promise<ReportDto> {
         if (!reportId || reportId <= 0) {
             throw new BadRequestException("ID de reporte inválido");
         }
@@ -228,12 +188,13 @@ export class ReportService {
             throw new NotFoundException("Reporte no encontrado");
         }
 
-        if (voteType === 'down') {
-            await this.reportRepository.decrementVoteCount(reportId, userId);
+        const existingVote = await this.reportRepository.findUserVoteOnReport(reportId, userId);
+
+        if (existingVote) {
+            await this.reportRepository.removeUserVoteOnReport(reportId, userId);
         } else {
-            await this.reportRepository.incrementVoteCount(reportId, userId);
-        }
-        
+            await this.reportRepository.addUserVoteOnReport(reportId, userId);
+        }        
         const updatedReport = await this.reportRepository.findById(reportId);
         return this.mapReportToDto(updatedReport);
     }
