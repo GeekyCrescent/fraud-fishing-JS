@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { axiosInstance } from "../network/axiosInstance";
 import {
   HomeIcon,
   Cog6ToothIcon,
@@ -7,8 +8,8 @@ import {
   UserIcon,
   PlusCircleIcon,
   DocumentTextIcon,
-  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useAuth } from "../context/AuthContext";
 
 interface User {
   id: number;
@@ -20,6 +21,8 @@ interface User {
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   // Obtener información del usuario actual
   useEffect(() => {
@@ -28,15 +31,10 @@ export default function Dashboard() {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
 
-        const res = await fetch("http://localhost:3000/auth/profile", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const res = await axiosInstance.get("/auth/profile");
 
-        if (res.ok) {
-          const data = await res.json();
+        if (res.status === 200) {
+          const data = res.data;
           console.log("Datos recibidos:", data);
           const userData = data.profile;
           setUser({
@@ -54,6 +52,11 @@ export default function Dashboard() {
 
     fetchUserProfile();
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -156,14 +159,13 @@ export default function Dashboard() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <NavLink
-            to="help"
-            className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:bg-teal-50 rounded-lg"
+        <div className="p-4 border-t border-white/30">
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded"
           >
-            <QuestionMarkCircleIcon className="w-5 h-5 text-teal-600" />
-            Cerrar Sesión
-          </NavLink>
+            Cerrar sesión
+          </button>
         </div>
       </aside>
 

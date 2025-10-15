@@ -362,23 +362,6 @@ export class ReportService {
         }
     }
 
-    private async sendStatusChangeNotification(
-        report: ReportWithStatus,
-        newStatusName: string
-    ): Promise<void> {
-        try {
-            await this.notificationService.notifyReportStatusChange(
-                report.user_id,
-                report.id,
-                report.title || report.url,
-                newStatusName
-            );
-        } catch (error) {
-            // Log del error pero no fallar la operación principal
-            console.error('Error enviando notificación de cambio de status:', error);
-        }
-    }
-
     // --- HELPER METHODS ---
 
     private mapReportToDto(report: Report): ReportDto {
