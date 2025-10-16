@@ -15,26 +15,20 @@ export const NOTIFICATION_TYPES = {
 export class NotificationService {
     constructor(private readonly notificationRepository: NotificationRepository) {}
 
-    // ===== CREAR NOTIFICACIONES =====
 
-    async createNotification(
-        userId: number,
-        title: string,
-        message: string,
-        relatedId?: number
-    ): Promise<void> {
+    // --- POSTs ---
+
+    // Crear notificación genérica
+    async createNotification(userId: number, title: string, message: string, relatedId?: number): Promise<void> {
         if (!userId || userId <= 0) {
             throw new BadRequestException("ID de usuario inválido");
         }
-
         if (!title || title.trim() === "") {
             throw new BadRequestException("Título es requerido");
         }
-
         if (!message || message.trim() === "") {
             throw new BadRequestException("Mensaje es requerido");
         }
-
         await this.notificationRepository.createNotification(
             userId, 
             title.trim(), 
@@ -43,14 +37,8 @@ export class NotificationService {
         );
     }
 
-    // ===== MÉTODOS HELPER PARA CREAR NOTIFICACIONES ESPECÍFICAS =====
-
-    async notifyReportStatusChange(
-        userId: number, 
-        reportId: number, 
-        reportTitle: string, 
-        newStatus: string
-    ): Promise<void> {
+    // Notificación específica para cambio de estado de reporte
+    async notifyReportStatusChange(userId: number, reportId: number, reportTitle: string, newStatus: string): Promise<void> {
         const statusEmojis: Record<string, string> = {
             'pending': '⏳',
             'in_progress': '🔍',
@@ -68,6 +56,38 @@ export class NotificationService {
         );
     }
 
+    // --- GETs ---
+
+    // Obtener todas las notificaciones de un usuario con paginación
+    async getNotificationsByUserId(userId: number, limit: number = 50, offset: number = 0): Promise<NotificationDto[]> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        const rows = await this.notificationRepository.findNotificationsByUserId(userId, limit, offset);
+        return rows.map(r => this.mapNotificationToDto(r));
+    }
+
+    // Obtener notificaciones no leídas de un usuario
+    async getUnreadNotificationsByUserId(userId: number): Promise<NotificationDto[]> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        const rows = await this.notificationRepository.findUnreadNotificationsByUserId(userId);
+        return rows.map(r => this.mapNotificationToDto(r));
+    }
+
+    // Obtener conteo de notificaciones no leídas de un usuario
+    async getUnreadCountByUserId(userId: number): Promise<number> {
+        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
+        return this.notificationRepository.getUnreadCountByUserId(userId);
+    }
+
+    // Obtener detalle de una notificación por su ID
+    async getNotificationById(id: number): Promise<NotificationDto> {
+        if (!id || id <= 0) throw new BadRequestException("ID de notificación inválido");
+        const n = await this.notificationRepository.findById(id);
+        if (!n) throw new NotFoundException("Notificación no encontrada");
+        return this.mapNotificationToDto(n);
+    }
+
+    // Mapeo de entidad a DTO
+
     private mapNotificationToDto(n: Notification): NotificationDto {
         return {
             id: n.id,
@@ -81,27 +101,5 @@ export class NotificationService {
         };
     }
 
-    async getNotificationsByUserId(userId: number, limit: number = 50, offset: number = 0): Promise<NotificationDto[]> {
-        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
-        const rows = await this.notificationRepository.findNotificationsByUserId(userId, limit, offset);
-        return rows.map(r => this.mapNotificationToDto(r));
-    }
-
-    async getUnreadNotificationsByUserId(userId: number): Promise<NotificationDto[]> {
-        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
-        const rows = await this.notificationRepository.findUnreadNotificationsByUserId(userId);
-        return rows.map(r => this.mapNotificationToDto(r));
-    }
-
-    async getUnreadCountByUserId(userId: number): Promise<number> {
-        if (!userId || userId <= 0) throw new BadRequestException("ID de usuario inválido");
-        return this.notificationRepository.getUnreadCountByUserId(userId);
-    }
-
-    async getNotificationById(id: number): Promise<NotificationDto> {
-        if (!id || id <= 0) throw new BadRequestException("ID de notificación inválido");
-        const n = await this.notificationRepository.findById(id);
-        if (!n) throw new NotFoundException("Notificación no encontrada");
-        return this.mapNotificationToDto(n);
-    }
+    
 }

@@ -7,9 +7,7 @@ export type Comment = {
     user_id: number;
     title: string;        
     content: string;      
-    image_url?: string;
     created_at: Date;
-    updated_at: Date;
 }
 
 @Injectable()
@@ -19,12 +17,12 @@ export class CommentRepository {
     // --- POSTS ---
 
     // Crear un nuevo comentario
-    async createComment(reportId: number, userId: number, title: string, content: string, imageUrl?: string): Promise<void> {
+    async createComment(reportId: number, userId: number, title: string, content: string): Promise<void> {
         const sql = `
-            INSERT INTO comment (report_id, user_id, title, content, image_url) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO comment (report_id, user_id, title, content) 
+            VALUES (?, ?, ?, ?)
         `;
-        await this.dbService.getPool().query(sql, [reportId, userId, title, content, imageUrl || null]);
+        await this.dbService.getPool().query(sql, [reportId, userId, title, content]);
     }
 
     // --- GETS ---
@@ -52,17 +50,6 @@ export class CommentRepository {
         const [rows] = await this.dbService.getPool().query(sql, [userId, reportId]);
         const result = rows as Comment[];
         return result[0];
-    }
-
-    // --- PUTS ---
-
-    async updateComment(id: number, title: string, content: string, imageUrl?: string): Promise<void> {
-        const sql = `
-            UPDATE comment 
-            SET title = ?, content = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
-        `;
-        await this.dbService.getPool().query(sql, [title, content, imageUrl || null, id]);
     }
 
     // --- DELETES ---

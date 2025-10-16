@@ -84,30 +84,6 @@ export class ReportRepository {
 
     // --- GETS ---
 
-    // Obtiener el reporte "primario" por URL (el más votado y aprobado)
-    async findPrimaryByUrl(url: string): Promise<Report | null> {
-        const sql = `
-        SELECT * FROM report
-        WHERE url = ? AND status_id = 3
-        ORDER BY vote_count DESC, created_at ASC
-        LIMIT 1
-        `;
-        const [rows] = await this.dbService.getPool().query(sql, [url]);
-        const result = rows as Report[];
-        return result[0] ?? null;
-    }
-
-    // Obtener todos los reportes "hermanos" por URL (los que tienen la misma URL y están aprobados)
-    async findSiblingsByUrl(url: string): Promise<Report[]> {
-        const sql = `
-        SELECT * FROM report
-        WHERE url = ? AND status_id = 3
-        ORDER BY vote_count DESC, created_at ASC
-        `;
-        const [rows] = await this.dbService.getPool().query(sql, [url]);
-        return rows as Report[];
-    }
-
     // Obtener todos los reportes
     async findAllReports(): Promise<Report[]> {
         const sql = `SELECT * FROM report`;
@@ -211,6 +187,13 @@ export class ReportRepository {
         return result[0];
     }
 
+    async findUserVoteOnReport(reportId: number, userId: number): Promise<{id: number, report_id: number, user_id: number} | null> {
+        const sql = `SELECT * FROM report_vote WHERE report_id = ? AND user_id = ? LIMIT 1`;
+        const [rows] = await this.dbService.getPool().query(sql, [reportId, userId]);
+        const result = rows as Array<{id: number, report_id: number, user_id: number}>;
+        return result[0] || null;
+    }
+
     // --- PUTS ---
 
     async updateReportStatus(id: number, statusId: number): Promise<void> {
@@ -233,23 +216,27 @@ export class ReportRepository {
         `;
         await this.dbService.getPool().query(sql, [title, description, url, categoryId, imageUrl || null, id]);
     }
-
-    async incrementVoteCount(reportId: number, userId: number): Promise<void> {
-        const sql = `UPDATE report SET vote_count = vote_count + 1 WHERE id = ?`;
-        await this.dbService.getPool().query(sql, [reportId]);
+    
+    async addUserVoteOnReport(reportId: number, userId: number): Promise<void> {
+        const sql = `INSERT INTO report_vote (report_id, user_id) VALUES (?, ?)`;
+        const sqlUpdate = `UPDATE report SET vote_count = vote_count + 1 WHERE id = ?`;
+        await this.dbService.getPool().query(sql, [reportId, userId]);
+        await this.dbService.getPool().query(sqlUpdate, [reportId]);
     }
 
-    async decrementVoteCount(reportId: number, userId: number): Promise<void> {
-        const sql = `UPDATE report SET vote_count = vote_count - 1 WHERE id = ?`;
-        await this.dbService.getPool().query(sql, [reportId]);
+    async removeUserVoteOnReport(reportId: number, userId: number): Promise<void> {
+        const sql = `DELETE FROM report_vote WHERE report_id = ? AND user_id = ?`;
+        const sqlUpdate = `UPDATE report SET vote_count = vote_count - 1 WHERE id = ?`;
+        await this.dbService.getPool().query(sql, [reportId, userId]);
+        await this.dbService.getPool().query(sqlUpdate, [reportId]);
     }
 
-    async incrementCommentCount(reportId: number, userId: number): Promise<void> {
+    async incrementCommentCount(reportId: number): Promise<void> {
         const sql = `UPDATE report SET comment_count = comment_count + 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }
 
-    async decrementCommentCount(reportId: number, userId: number): Promise<void> {
+    async decrementCommentCount(reportId: number): Promise<void> {
         const sql = `UPDATE report SET comment_count = comment_count - 1 WHERE id = ?`;
         await this.dbService.getPool().query(sql, [reportId]);
     }

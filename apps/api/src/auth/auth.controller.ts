@@ -74,30 +74,16 @@ export class AuthController {
     @ApiResponse({ status: 200, description: "Token refrescado exitosamente" })
     @ApiResponse({ status: 401, description: "Token de refresco inválido" })
     async refresh(@Body() dto: RefreshDto) {
-        try {
-            const profile = await this.tokenService.verifyRefresh(dto.refreshToken);
-            const user = await this.userService.findById(Number(profile.sub));
-            
-            if (!user) {
-                throw new NotFoundException("Usuario no encontrado");
-            }
-
-            const fullUser = await this.userService.getUserByEmail(user.email);
-            
-            const newAccessToken = await this.tokenService.generateAccess({
-                id: fullUser.id.toString(), 
-                email: fullUser.email, 
-                name: fullUser.name,
-                is_admin: fullUser.is_admin,
-                is_super_admin: fullUser.is_super_admin
-            });
-            
-            return { accessToken: newAccessToken };
-        } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            throw new UnauthorizedException("Token de refresco inválido");
-        }
+        const profile = await this.tokenService.verifyRefresh(dto.refreshToken);
+        const user = await this.userService.findById(Number(profile.sub));
+        const fullUser = await this.userService.getUserByEmail(user.email);
+        const newAccessToken = await this.tokenService.generateAccess({
+            id: fullUser.id.toString(), 
+            email: fullUser.email, 
+            name: fullUser.name,
+            is_admin: fullUser.is_admin,
+            is_super_admin: fullUser.is_super_admin
+        });
+        return { accessToken: newAccessToken };
     }
 }
