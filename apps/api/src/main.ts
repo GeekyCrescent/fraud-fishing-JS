@@ -8,8 +8,7 @@ async function bootstrap() {
 
   // Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors({
-    origin: 'http://localhost:5173', // Cambia esto si tu frontend está en otro puerto/origen
-    credentials: true,
+    origin: '*', // Cambia esto si tu frontend está en otro puerto/origen
   });
 
   const config = new DocumentBuilder()
@@ -20,6 +19,6 @@ async function bootstrap() {
     .build();
   const doc = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, doc);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();
