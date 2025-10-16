@@ -1,34 +1,8 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  UseGuards,
-  Get,
-  Put,
-  Param,
-  Delete,
-  Query,
-  BadRequestException,
-} from "@nestjs/common";
-import {
-  ApiResponse,
-  ApiTags,
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-} from "@nestjs/swagger";
+import { Body, Controller, Post, Req, UseGuards, Get, Put, Param, Delete, Query, BadRequestException} from "@nestjs/common";
+import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request";
-import {
-  ReportDto,
-  CreateReportDto,
-  UpdateReportDto,
-  UpdateReportStatusDto,
-  TagDto,
-} from "./dto/report.dto";
+import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto} from "./dto/report.dto";
 import { CommentDto } from "../comments/dto/comment.dto";
 import { ReportService } from "./report.service";
 import { NotificationService } from "../notifications/notification.service";
@@ -36,10 +10,7 @@ import { NotificationService } from "../notifications/notification.service";
 @ApiTags("Endpoints de Reportes")
 @Controller("reports")
 export class ReportController {
-  constructor(
-    private readonly reportService: ReportService,
-    private readonly notificationService: NotificationService
-  ) {}
+  constructor(private readonly reportService: ReportService) {}
 
   // ====== POST ======
   @Post()
@@ -144,21 +115,9 @@ export class ReportController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Votar en un reporte" })
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: {
-        voteType: { type: "string", enum: ["up", "down"], example: "up" },
-      },
-    },
-  })
-  async voteReport(
-    @Param("id") id: string,
-    @Body() body: { voteType: "up" | "down" },
-    @Req() req: AuthenticatedRequest
-  ): Promise<ReportDto> {
-    const userId = Number(req.user.profile.id); // ✅ obtenemos el userId del token
-    return this.reportService.voteReport(Number(id), body.voteType, userId);
+  async voteReport(@Param("id") id: string, @Req() req: AuthenticatedRequest): Promise<ReportDto> {
+    const userId = Number(req.user.profile.id);
+    return this.reportService.voteReport(Number(id), userId);
   }
 
   @Put(":id/status")

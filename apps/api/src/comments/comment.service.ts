@@ -1,16 +1,26 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { Comment, CommentRepository } from "./comment.repository";
 import { CommentDto, CreateCommentDto } from "./dto/comment.dto";
+import { ReportRepository } from "src/reports/report.repository";
 
 @Injectable()
 export class CommentService {
-    constructor(private readonly commentRepository: CommentRepository) {}
+    constructor(private readonly commentRepository: CommentRepository, private readonly reportRepository: ReportRepository) {}
 
     // --- POSTS ---
 
     async createComment(createCommentDto: CreateCommentDto, userId: number): Promise<CommentDto> {
         const { reportId, title, content } = createCommentDto;
         await this.commentRepository.createComment(reportId, userId, title, content);
+        const report = await this.reportRepository.findById(reportId);
+        if (!report) {
+            throw new NotFoundException("Reporte no encontrado");
+        }
+        if (report.status_id !== 3) {
+            throw new BadRequestException("No se pueden agregar comentarios a un reporte que no está en estado 'Aceptado'");
+        }
+        await this.reportRepository.incrementCommentCount(reportId);
+        
         const newComment = await this.commentRepository.findLatestCommentByUserAndReport(userId, reportId);
         return this.mapCommentToDto(newComment);
     }
@@ -50,6 +60,9 @@ export class CommentService {
         if (comment.user_id !== requesterId && !isAdmin) {
             throw new ForbiddenException("No tienes permiso para eliminar este comentario.");
         }
+
+        const report = await this.reportRepository.findById(comment.report_id);
+        await this.reportRepository.decrementCommentCount(report.id);
 
         await this.commentRepository.deleteComment(id);
     }
