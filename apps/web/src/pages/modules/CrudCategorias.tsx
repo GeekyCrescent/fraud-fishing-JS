@@ -1,4 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from "react";
+import axios from "axios";
 import {
   FiPlus,
   FiTrash2,
@@ -31,24 +32,21 @@ export default function CrudCategorias() {
 
   // Carga de categorías
   useEffect(() => {
-    fetch("http://localhost:3000/categories")
-      .then((res) => res.json())
-      .then((data: Categoria[]) => {
-        setCategorias(data ?? []);
+    axios.get("http://localhost:3000/categories")
+      .then((res) => {
+        setCategorias(res.data ?? []);
         setPage(1);
       })
       .catch(() => setError("No se pudieron cargar las categorías"));
 
     // Cargar las 3 categorías más usadas
-    fetch("http://localhost:3000/categories/top/3")
-      .then((res) => res.json())
-      .then((data: { name: string; usage_count: number }[]) => {
-        if (data && data.length > 0) {
-          setTopCategorias(data);
+    axios.get("http://localhost:3000/categories/top/3")
+      .then((res) => {
+        if (res.data && res.data.length > 0) {
+          setTopCategorias(res.data);
         }
       })
       .catch(() => {
-        // Manejar error si no se pueden cargar las top categorías
         console.error("No se pudieron cargar las top categorías");
       });
   }, []);
@@ -111,13 +109,10 @@ export default function CrudCategorias() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("http://localhost:3000/categories", {
-        method: "POST",
+      const res = await axios.post("http://localhost:3000/categories", nueva, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nueva),
       });
-      if (!res.ok) throw new Error();
-      const creada: Categoria = await res.json();
+      const creada: Categoria = res.data;
       setCategorias((curr) => [...curr, creada]);
       setShowForm(false);
       setNueva({ name: "", description: "" });
@@ -129,10 +124,7 @@ export default function CrudCategorias() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar esta categoría?")) return;
     try {
-      const res = await fetch(`http://localhost:3000/categories/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error();
+      await axios.delete(`http://localhost:3000/categories/${id}`);
       setCategorias((curr) => curr.filter((c) => c.id !== id));
       if (detalle?.id === id) setDetalle(null);
     } catch {
@@ -144,13 +136,10 @@ export default function CrudCategorias() {
     e.preventDefault();
     if (!editando) return;
     try {
-      const res = await fetch(`http://localhost:3000/categories/${editando.id}`, {
-        method: "PUT",
+      const res = await axios.put(`http://localhost:3000/categories/${editando.id}`, editando, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editando),
       });
-      if (!res.ok) throw new Error();
-      const actualizada = await res.json();
+      const actualizada = res.data;
       setCategorias((curr) =>
         curr.map((c) => (c.id === actualizada.id ? actualizada : c))
       );
