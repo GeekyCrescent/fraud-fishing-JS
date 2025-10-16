@@ -8,7 +8,8 @@ async function bootstrap() {
 
   // Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors({
-    origin: '*', // Cambia esto si tu frontend está en otro puerto/origen
+    origin: '*',
+    credentials: true,
   });
 
   const config = new DocumentBuilder()

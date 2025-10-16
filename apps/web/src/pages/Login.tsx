@@ -1,77 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { axiosInstance } from "../network/axiosInstance";
 
 interface LoginProps {
   setUser: (user: { correo: string }) => void;
-}
-
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    is_admin: boolean;
-  };
 }
 
 export default function Login({ setUser }: LoginProps) {
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, isAuthenticated, loading: loadingAuth } = useAuth();
+
+  useEffect(() => {
+    if (!loadingAuth && isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [loadingAuth, isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    const payload = { email: correo, password: contrasena };
-    console.log("Enviando payload:", payload); // 1. Verifica lo que se envía
+    setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload),
-      });
+      // 1) Login mediante el contexto (guarda tokens en localStorage)
+      await login(correo, contrasena);
 
-      console.log("Respuesta del servidor:", res); // 2. Verifica la respuesta completa
+      // 2) Obtener perfil con el accessToken recién guardado
+      const { data } = await axiosInstance.get("/auth/profile");
+      const profile = data?.profile;
 
-      if (!res.ok) {
-        let msg = "Credenciales incorrectas";
-        try {
-          const err = await res.json();
-          console.error("Error en la respuesta (JSON):", err); // 3. Verifica el error del JSON
-          msg = err.message ?? msg;
-        } catch (jsonError) {
-          console.error("No se pudo parsear el JSON de error:", jsonError);
-        }
-        setError(msg);
-        return;
+      if (!profile) {
+        throw new Error("No se pudo obtener el perfil");
       }
 
-      const data: LoginResponse = await res.json();
-      console.log("Datos recibidos (éxito):", data); // 4. Verifica los datos si todo va bien
-
-      // Solo admins
-      if (!data.user.is_admin) {
+      // 3) Solo admins
+      if (!profile.is_admin) {
         setError("Solo los administradores pueden ingresar.");
+        setLoading(false);
         return;
       }
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
 
-      // Guarda usuario en tu estado global/local
-      setUser({ correo: data.user.email});
-
+      // 4) Guardar usuario en tu estado y navegar
+      setUser({ correo: profile.email });
       navigate("/dashboard");
-    } catch (err) {
-      console.error("Error en el bloque catch (fetch falló):", err); // 5. Verifica el error de conexión
-      setError("Error de conexión");
+    } catch (err: any) {
+      console.error("Error al iniciar sesión:", err);
+      setError(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Error de conexión o credenciales inválidas"
+      );
+    } finally {
+      setLoading(false);
     }
   };
-
 
   return (
     <div className="flex h-screen font-sans">
@@ -79,23 +66,12 @@ export default function Login({ setUser }: LoginProps) {
       <div className="flex flex-1 bg-white items-center justify-center p-8">
         <div className="w-full max-w-sm text-center">
           {/* Logo */}
-          <img
-            src="/logo.png"
-            alt="Fraud Fishing"
-            className="mx-auto mb-10 w-64"
-          />
+          <img src="/logo.png" alt="Fraud Fishing" className="mx-auto mb-10 w-64" />
 
-          <h2 className="text-2xl font-bold text-[#00204D] mb-4">
-            Inicia sesión
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Accede con tus credenciales
-          </p>
+          <h2 className="text-2xl font-bold text-[#00204D] mb-4">Inicia sesión</h2>
+          <p className="text-gray-600 mb-6">Accede con tus credenciales</p>
 
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-center space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-4">
             <input
               type="email"
               placeholder="Correo"
@@ -115,16 +91,16 @@ export default function Login({ setUser }: LoginProps) {
                          focus:outline-none focus:ring-2 focus:ring-[#00B5BC]"
             />
 
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full py-3 rounded-lg bg-[#00B5BC] text-white 
-                         font-bold text-lg hover:bg-[#009da3] transition-colors cursor-pointer"
+                         font-bold text-lg hover:bg-[#009da3] transition-colors cursor-pointer
+                         disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Ingresar
+              {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
         </div>

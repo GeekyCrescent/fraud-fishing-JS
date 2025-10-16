@@ -16,19 +16,18 @@ export type Notification = {
 export class NotificationRepository {
     constructor(private readonly dbService: DbService) {}
 
-    // Método para crear notificaciones adaptado a la nueva estructura
-    async createNotification(
-        userId: number,
-        title: string,
-        message: string,
-        relatedId?: number
-    ): Promise<void> {
+    // --- POSTs ---
+
+    // Crear notificaciones adaptado a la nueva estructura
+    async createNotification(userId: number, title: string, message: string, relatedId?: number): Promise<void> {
         const sql = `
             INSERT INTO notification (user_id, title, message, related_id, is_read) 
             VALUES (?, ?, ?, ?, false)
         `;
         await this.dbService.getPool().query(sql, [userId, title, message, relatedId || null]);
     }
+
+    // --- GETs ---
 
     // Otros métodos necesarios para el funcionamiento básico
     async findNotificationsByUserId(userId: number, limit: number = 50, offset: number = 0): Promise<Notification[]> {
@@ -43,6 +42,7 @@ export class NotificationRepository {
         return rows as Notification[];
     }
 
+    // Obtener notificaciones no leídas de un usuario
     async findUnreadNotificationsByUserId(userId: number): Promise<Notification[]> {
         const sql = `
             SELECT n.*
@@ -54,6 +54,7 @@ export class NotificationRepository {
         return rows as Notification[];
     }
 
+    // Contar notificaciones no leídas de un usuario
     async getUnreadCountByUserId(userId: number): Promise<number> {
         const sql = `
             SELECT COUNT(*) as count 
@@ -65,6 +66,7 @@ export class NotificationRepository {
         return result[0]?.count || 0;
     }
 
+    // Obtener notificación por ID
     async findById(id: number): Promise<Notification> {
         const sql = `
             SELECT n.*

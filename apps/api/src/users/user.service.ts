@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from "@nestjs/common";
 import { User, UserRepository } from "./user.repository";
-import { sha256 } from "../util/crypto/hash.util";
+import { sha256, generateSalt } from "../util/crypto/hash.util";
 import { ReportRepository } from "../reports/report.repository";
 import { UserDto, CreateUserDto, UpdateUserDto, LoginDto } from "./dto/user.dto";
 
@@ -18,8 +18,8 @@ export class UserService {
         if (existingUser) {
             throw new BadRequestException("El usuario ya existe con este email");
         }
-        const salt = "salt";
-        const hashedPassword = sha256(password);
+        const salt = generateSalt();
+        const hashedPassword = sha256(password + salt);
 
         await this.userRepository.registerUser(email, name, hashedPassword, salt, false);
         return { email, name };
@@ -33,7 +33,7 @@ export class UserService {
             throw new NotFoundException("Usuario no encontrado");
         }
 
-        const hashedInputPassword = sha256(password);
+        const hashedInputPassword = sha256(password + user.salt);
         if (user.password_hash !== hashedInputPassword) {
             throw new UnauthorizedException("Contraseña incorrecta");
         }

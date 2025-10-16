@@ -77,7 +77,7 @@ export default function CrudValidacionReportes() {
   // Fetch por status
   const fetchByStatus = async (statusId: StatusId) => {
     try {
-      const res = await fetch(`${API}/reports/status/${statusId}`);
+      const res = await fetch(`${API}/reports?status=${statusId}`, { headers: authHeaders() });
       if (!res.ok) throw new Error();
       const data: Report[] = await res.json();
       if (statusId === 1) setPendientes(data ?? []);
