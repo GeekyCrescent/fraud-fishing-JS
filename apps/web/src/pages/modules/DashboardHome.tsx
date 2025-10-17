@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import axios from "axios";
 import {
   FiUsers,
   FiClipboard,
@@ -29,10 +30,10 @@ export default function DashboardHome() {
     const fetchAll = async () => {
       try {
         const [usersRes, catsRes, reportsRes, valRes] = await Promise.all([
-          fetch("http://localhost:3000/admin/user/stats").then((r) => r.json()),
-          fetch("http://localhost:3000/categories").then((r) => r.json()),
-          fetch("http://localhost:3000/reports").then((r) => r.json()),
-          fetch("http://localhost:3000/report-validations").then((r) => r.json()),
+          axios.get("http://localhost:3000/admin/user/stats").then((res) => res.data),
+          axios.get("http://localhost:3000/categories").then((res) => res.data),
+          axios.get("http://localhost:3000/reports").then((res) => res.data),
+          axios.get("http://localhost:3000/report-validations").then((res) => res.data),
         ]);
 
         const users = usersRes?.users ?? [];
