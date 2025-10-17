@@ -12,7 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
     "@nestjs/swagger": "^11.2.0",
     "dotenv-cli": "^10.0.0",
     "joi": "^18.0.1",
