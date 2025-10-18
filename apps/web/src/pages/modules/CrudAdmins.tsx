@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import {
   FiPlus,
   FiTrash2,
@@ -44,11 +45,11 @@ export default function CrudAdmins() {
 
   // Carga solo administradores desde /admin/user/stats filtrando is_admin = true O is_super_admin = true
   useEffect(() => {
-    fetch("http://localhost:3000/admin/user/stats", {
+    axios.get("http://localhost:3000/admin/user/stats", {
       headers: authHeaders(),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
+        const data = res.data;
         console.log("Datos completos del endpoint:", data); // ← LOG 1
         
         // Filtrar usuarios que son administradores O super administradores
@@ -149,23 +150,15 @@ export default function CrudAdmins() {
       console.log("Tipo:", tipoNuevo);
       console.log("Datos a enviar:", nuevo);
 
-      const res = await fetch(endpoint, {
-        method: "POST",
+      await axios.post(endpoint, nuevo, {
         headers: authHeaders(),
-        body: JSON.stringify(nuevo), // Solo name, email, password
       });
-      
-      if (!res.ok) {
-        const errorData = await res.text();
-        console.error("Error del backend:", errorData);
-        throw new Error();
-      }
       
       // Recargar la lista de administradores
-      const ref = await fetch("http://localhost:3000/admin/user/stats", {
+      const ref = await axios.get("http://localhost:3000/admin/user/stats", {
         headers: authHeaders(),
       });
-      const data = await ref.json();
+      const data = ref.data;
       console.log("Lista actualizada:", data);
       
       const adminUsers = (data?.users ?? []).filter((user: AdminStats) => 
@@ -189,11 +182,9 @@ export default function CrudAdmins() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este administrador?")) return;
     try {
-      const res = await fetch(`http://localhost:3000/admin/user/${id}`, {
-        method: "DELETE",
+      await axios.delete(`http://localhost:3000/admin/user/${id}`, {
         headers: authHeaders(),
       });
-      if (!res.ok) throw new Error();
       setAdmins((curr) => curr.filter((admin) => admin.id !== id));
       if (detalle?.id === id) setDetalle(null);
     } catch {

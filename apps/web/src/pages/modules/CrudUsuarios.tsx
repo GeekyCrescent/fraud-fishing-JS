@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import {
   FiPlus,
   FiTrash2,
@@ -44,11 +45,11 @@ export default function CrudUsuarios() {
 
   // Carga desde /admin/user/stats -> { users: [...] } - SOLO usuarios normales
   useEffect(() => {
-    fetch("http://localhost:3000/admin/user/stats", {
-      headers: authHeaders(), // Usar headers con token real
+    axios.get("http://localhost:3000/admin/user/stats", {
+      headers: authHeaders(),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
+        const data = res.data;
         // Filtrar solo usuarios que NO son administradores
         const regularUsers = (data?.users ?? []).filter((user: UsuarioStats) => 
           !user.is_admin && !user.is_super_admin
@@ -59,7 +60,7 @@ export default function CrudUsuarios() {
       .catch(() => setError("No se pudieron cargar los usuarios"));
   }, []);
 
-  // ===== KPIs (tarjetas) - Actualizados para usuarios normales =====
+  // ===== KPIs (tarjetas) - Actualizadas para usuarios normales =====
   const { total, nuevosSemana, nuevosDia } = useMemo(() => {
     const now = new Date().getTime();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
@@ -137,18 +138,15 @@ export default function CrudUsuarios() {
         is_super_admin: false // Nunca super admin desde usuarios normales
       };
 
-      const res = await fetch("http://localhost:3000/users", {
-        method: "POST",
+      await axios.post("http://localhost:3000/users", userData, {
         headers: authHeaders(),
-        body: JSON.stringify(userData),
       });
-      if (!res.ok) throw new Error();
       
       // Recargar solo usuarios normales
-      const ref = await fetch("http://localhost:3000/admin/user/stats", {
+      const ref = await axios.get("http://localhost:3000/admin/user/stats", {
         headers: authHeaders(),
       });
-      const data = await ref.json();
+      const data = ref.data;
       const regularUsers = (data?.users ?? []).filter((user: UsuarioStats) => 
         !user.is_admin && !user.is_super_admin
       );
@@ -164,11 +162,9 @@ export default function CrudUsuarios() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este usuario?")) return;
     try {
-      const res = await fetch(`http://localhost:3000/admin/user/${id}`, {
-        method: "DELETE",
+      await axios.delete(`http://localhost:3000/admin/user/${id}`, {
         headers: { Authorization: "Bearer <TOKEN_ADMIN>" },
       });
-      if (!res.ok) throw new Error();
       setUsuarios((curr) => curr.filter((u) => u.id !== id));
     } catch {
       setError("No se pudo eliminar el usuario");
@@ -225,7 +221,7 @@ export default function CrudUsuarios() {
             tone="soft"
           />
           <KpiCard
-            title="Usuarios activos"  // Cambié "Admins" por algo más relevante
+            title="Usuarios activos"
             value={usuarios.filter(u => u.reportCount > 0 || u.commentCount > 0).length}
             tone="soft"
           />
@@ -589,7 +585,7 @@ function Pagination({
       {pages.map((p, i) =>
         typeof p === "number" ? (
           <button
-            key={`page-${p}`} // ← Mejor key más específica
+            key={`page-${p}`}
             className={`px-3 py-1 rounded border cursor-pointer transition-colors ${
               p === page
                 ? "bg-teal-600 text-white border-teal-600"

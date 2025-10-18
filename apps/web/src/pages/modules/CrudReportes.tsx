@@ -1,6 +1,7 @@
 // CrudReportes.tsx — estilo replicado desde CrudUsuarios
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import {
   FiTrash2,
   FiEye,
@@ -67,9 +68,8 @@ export default function CrudReportes() {
   const fetchReportes = async () => {
     setError("");
     try {
-      const res = await fetch(`${API}/reports?status=3`)
-      if (!res.ok) throw new Error();
-      const data: Report[] = await res.json();
+      const res = await axios.get(`${API}/reports?status=3`);
+      const data: Report[] = res.data;
       setReportes(data ?? []);
       setPage(1);
     } catch {
@@ -80,11 +80,10 @@ export default function CrudReportes() {
   // ===== Obtener tags
   const fetchReportTags = async (reportId: number): Promise<Tag[]> => {
     try {
-      const res = await fetch(`${API}/reports/${reportId}/tags`);
-      if (!res.ok) throw new Error();
+      const res = await axios.get(`${API}/reports/${reportId}/tags`);
       console.log("Tags del reporte cargados");
       console.log(res);
-      const tags: Tag[] = await res.json();
+      const tags: Tag[] = res.data;
       return tags;
     } catch {
       console.error("Error al cargar tags del reporte");
@@ -95,9 +94,8 @@ export default function CrudReportes() {
   // ===== Obtener categoría
   const fetchReportCategory = async (reportId: number): Promise<string> => {
     try {
-      const res = await fetch(`${API}/reports/${reportId}/category`);
-      if (!res.ok) throw new Error();
-      const response: { categoryName: string } = await res.json();
+      const res = await axios.get(`${API}/reports/${reportId}/category`);
+      const response: { categoryName: string } = res.data;
       console.log(res);
       return response.categoryName;
     } catch {
@@ -106,14 +104,12 @@ export default function CrudReportes() {
     }
   };
 
-
   const fetchUserDetails = async (userId: number) => {
     try {
-      const res = await fetch(`${API}/admin/user/stats`, {
+      const res = await axios.get(`${API}/admin/user/stats`, {
         headers: { ...authHeaders(), "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = res.data;
       const user = data?.users?.find((u: UsuarioDetalle) => u.id === userId);
       if (user) setUsuarioDetalle(user);
       else setError("Usuario no encontrado");
@@ -209,11 +205,9 @@ export default function CrudReportes() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este reporte?")) return;
     try {
-      const res = await fetch(`${API}/reports/${id}`, {
-        method: "DELETE",
+      await axios.delete(`${API}/reports/${id}`, {
         headers: { ...authHeaders() },
       });
-      if (!res.ok) throw new Error();
       setReportes((curr) => curr.filter((r) => r.id !== id));
       if (detalle?.id === id) setDetalle(null);
     } catch {
@@ -225,11 +219,8 @@ export default function CrudReportes() {
   const fetchSiblings = async (url: string) => {
     setSiblings(null);
     try {
-      const res = await fetch(
-        `${API}/reports?url=${encodeURIComponent(url)}`
-      );
-      if (!res.ok) throw new Error();
-      const data: Sibling[] = await res.json();
+      const res = await axios.get(`${API}/reports?url=${encodeURIComponent(url)}`);
+      const data: Sibling[] = res.data;
       setSiblings(data ?? []);
     } catch {
       setSiblings([]);
@@ -328,7 +319,7 @@ export default function CrudReportes() {
                   rep={rep}
                   onView={() => handleVerDetalle(rep)}
                   onDelete={() => handleEliminar(rep.id)}
-                  onViewUser={(userId) => fetchUserDetails(userId)} // ← AGREGAR ESTA LÍNEA
+                  onViewUser={(userId) => fetchUserDetails(userId)}
                 />
               ))}
               {pageItems.length === 0 && (
@@ -674,12 +665,12 @@ function RowReporte({
   rep,
   onView,
   onDelete,
-  onViewUser, // ← AGREGAR ESTE PARÁMETRO
+  onViewUser,
 }: {
   rep: Report;
   onView: () => void;
   onDelete: () => void;
-  onViewUser: (userId: number) => void; // ← AGREGAR ESTE TIPO
+  onViewUser: (userId: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -712,7 +703,7 @@ function RowReporte({
       <td className="py-4">
         {rep.userId ? (
           <button
-            onClick={() => onViewUser(rep.userId!)} // ← CAMBIAR fetchUserDetails por onViewUser
+            onClick={() => onViewUser(rep.userId!)}
             className="text-teal-600 hover:text-teal-800 hover:underline font-medium cursor-pointer"
             title="Ver detalles del usuario"
           >
@@ -779,16 +770,13 @@ function Pagination({
     const arr: (number | string)[] = [];
     const push = (v: number | string) => arr.push(v);
     
-    // Si no hay páginas, retornar array vacío
     if (totalPages <= 0) return arr;
     
-    // Si hay pocas páginas, mostrar todas
     if (totalPages <= 6) {
       for (let i = 1; i <= totalPages; i++) push(i);
       return arr;
     }
     
-    // Lógica compleja para muchas páginas
     push(1);
     if (page > 3) push("…");
     const start = Math.max(2, page - 1);
@@ -799,12 +787,10 @@ function Pagination({
     return arr;
   }, [page, totalPages]);
 
-  // Casos edge: No mostrar paginación
   if (totalPages <= 1) {
     return null;
   }
 
-  // Caso edge: Página inválida
   if (page < 1 || page > totalPages) {
     return (
       <div className="flex items-center gap-2 text-red-500 text-sm">
@@ -819,7 +805,6 @@ function Pagination({
     );
   }
 
-  // Caso edge: Sin datos
   if (totalPages === 0) {
     return (
       <div className="text-gray-500 text-sm">
@@ -844,7 +829,7 @@ function Pagination({
       {pages.map((p, i) =>
         typeof p === "number" ? (
           <button
-            key={`page-${p}`} // ← Mejor key que incluya ambos valores
+            key={`page-${p}`}
             className={`px-3 py-1 rounded border cursor-pointer transition-colors ${
               p === page
                 ? "bg-teal-600 text-white border-teal-600"
@@ -880,4 +865,3 @@ function Pagination({
       )}
     </div>
   );
-}
