@@ -24,6 +24,18 @@ export class UserController{
         return this.userService.findById(Number(userId));
     }
 
+    @Get("me/stats")
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Obtener estadísticas del usuario autenticado' })
+    @ApiResponse({status: 200, description: "Estadísticas obtenidas exitosamente", type: Object})
+    @ApiResponse({status: 401, description: "Token inválido"})
+    @ApiResponse({status: 404, description: "Usuario no encontrado"})
+    async getOwnUserStats(@Req() req: AuthenticatedRequest): Promise<{ totalReports: number; openReports: number; closedReports: number }> {
+        const userId = req.user.profile.id;
+        return this.userService.findUserWithStats(Number(userId));
+    }
+
     // ===== POSTS =======
 
     @Post()
