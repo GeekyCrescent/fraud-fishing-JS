@@ -62,6 +62,22 @@ export class UserRepository {
         return result[0];
     }
 
+    async findUserWithStats(userId: number): Promise<any> {
+        const sql = `
+            SELECT u.id, u.name, u.email, u.is_admin, u.is_super_admin, u.created_at,
+            COUNT(DISTINCT r.id) as reportCount, COUNT(DISTINCT c.id) as commentCount, COUNT(DISTINCT rv.id) as likeCount
+            FROM user u
+            LEFT JOIN report r ON u.id = r.user_id
+            LEFT JOIN comment c ON u.id = c.user_id
+            LEFT JOIN report_vote rv ON u.id = rv.user_id
+            GROUP BY u.id, u.name, u.email, u.is_admin, u.is_super_admin, u.created_at
+            HAVING u.id = ?
+        `;
+        const [rows] = await this.dbService.getPool().query(sql, [userId]);
+        const result = rows as any[];
+        return result[0];
+    }
+
     // Obtener todos los usuarios con estadísticas (Para admin)
     async findAllUsersWithStats(): Promise<any[]> {
         const sql = `
