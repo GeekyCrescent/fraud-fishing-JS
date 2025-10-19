@@ -55,6 +55,7 @@ export class ReportController {
     @Query("categoryId") categoryIdRaw?: string,
     @Query("url") url?: string,
     @Query("sort") sort?: "popular" | "recent",
+    @Query("include") include?: string[], // ← NUEVO: leer include de la query
     @Query("page") pageRaw?: string,
     @Query("limit") limitRaw?: string
   ): Promise<ReportDto[] | ReportDto> {
@@ -79,6 +80,7 @@ export class ReportController {
       categoryId,
       url,
       sort,
+      include, // ← NUEVO: pasar include al servicio
       page,
       limit,
     });

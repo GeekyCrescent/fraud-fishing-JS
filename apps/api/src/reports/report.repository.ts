@@ -336,6 +336,7 @@ export class ReportRepository {
         includeStatus?: boolean;
         includeCategory?: boolean;
         includeUser?: boolean;
+        includeTags?: boolean; // ← NUEVO
         limit: number;
         offset: number;
     }): Promise<any[]> {
@@ -343,19 +344,24 @@ export class ReportRepository {
             "r.id", "r.user_id", "r.category_id", "r.title", "r.description", "r.url",
             "r.status_id", "r.image_url", "r.vote_count", "r.comment_count", "r.created_at", "r.updated_at"
         ];
-
         const joins: string[] = [];
+
         if (filters.includeStatus) {
             selects.push("rs.name AS status_name", "rs.description AS status_description");
             joins.push("LEFT JOIN report_status rs ON r.status_id = rs.id");
         }
         if (filters.includeCategory) {
-            // extend with category fields if needed (e.g., c.name AS category_name)
+            selects.push("c.name AS category_name"); // ← seleccionar nombre de categoría
             joins.push("LEFT JOIN category c ON r.category_id = c.id");
         }
         if (filters.includeUser) {
-            // extend with user fields if needed (e.g., u.username AS user_name)
             joins.push("LEFT JOIN user u ON r.user_id = u.id");
+        }
+        if (filters.includeTags) {
+            // ← NUEVO: agregar los tags por reporte usando JSON_ARRAYAGG
+            selects.push("COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', t.id, 'name', t.name)), JSON_ARRAY()) AS tags_json");
+            joins.push("LEFT JOIN report_tag rt ON rt.report_id = r.id");
+            joins.push("LEFT JOIN tag t ON t.id = rt.tag_id");
         }
 
         const where: string[] = [];
@@ -372,11 +378,14 @@ export class ReportRepository {
         if (filters.sort === "popular") orderBy = "ORDER BY r.vote_count DESC, r.created_at DESC";
         else if (filters.sort === "recent") orderBy = "ORDER BY r.created_at DESC";
 
+        const groupBy = filters.includeTags ? "GROUP BY r.id" : ""; // ← NUEVO
+
         const sql = `
             SELECT ${selects.join(", ")}
             FROM report r
             ${joins.join(" ")}
             ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+            ${groupBy}
             ${orderBy}
             LIMIT ? OFFSET ?
         `;

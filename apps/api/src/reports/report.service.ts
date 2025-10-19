@@ -364,22 +364,39 @@ export class ReportService {
             includeStatus,
             includeCategory,
             includeUser,
+            includeTags, // ← NUEVO
             limit,
             offset,
         });
 
         const dtos = rows.map(r => this.mapDynamicRowToDto(r, { includeStatus, includeCategory, includeUser }));
 
-        if (includeTags && dtos.length) {
-            const withTags = await Promise.all(
-                dtos.map(async d => {
-                    const tags = await this.findTagsByReportId(d.id);
-                    d.tags = tags;
-                    return d;
-                })
-            );
-            return withTags;
+        // ← Ajuste: filtrar nulos al mapear tags
+        if (includeTags) {
+            for (let i = 0; i < rows.length; i++) {
+                const raw = rows[i] as any;
+                const dto = dtos[i];
+                const rawTags = raw?.tags_json;
+
+                let tagsArray: Array<{ id: number; name: string } | null> = [];
+                if (rawTags) {
+                    if (typeof rawTags === "string") {
+                        try { tagsArray = JSON.parse(rawTags); } catch { tagsArray = []; }
+                    } else if (Array.isArray(rawTags)) {
+                        tagsArray = rawTags;
+                    }
+                }
+                // Si el error persiste, la forma más limpia y estricta es:
+                const validTags = (tagsArray ?? [])
+                    .filter((t): t is { id: any; name: any } => t != null) // Garantiza que t no es null/undefined
+                    .filter((t) => t.id != null && t.name != null); // Verifica las propiedades.
+
+
+                // La asignación final (se mantiene igual):
+                dto.tags = validTags.map(t => ({ id: Number(t.id), name: String(t.name) }));
+            }
         }
+
         return dtos;
     }
 
@@ -398,10 +415,14 @@ export class ReportService {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         } as ReportDto;
-
+    
         if (opts.includeStatus) {
             base.statusName = row.status_name;
             base.statusDescription = row.status_description;
+        }
+        // ← Nuevo: mapear nombre de categoría cuando se pidió include=category
+        if (opts.includeCategory) {
+            base.categoryName = row.category_name;
         }
         // category/user names can be extended here if you add columns
         return base;

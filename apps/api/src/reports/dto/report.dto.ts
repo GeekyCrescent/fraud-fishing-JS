@@ -47,6 +47,8 @@ export class ReportDto {
     @ApiProperty({ example: "En espera de revisión", description: "Descripción del status", required: false })
     statusDescription?: string;
 
+    @ApiProperty({ example: "Phishing", description: "Nombre de la categoría", required: false })
+    categoryName?: string;
     @ApiProperty({ example: "https://example.com/image.jpg", description: "URL de la imagen", required: false })
     imageUrl?: string;
 
