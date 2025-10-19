@@ -69,6 +69,24 @@ export class UserService {
         }));
     }
 
+    async findUserWithStats(userId: number): Promise<any> {
+        const user = await this.userRepository.findUserWithStats(userId);
+        
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        // Excluir información sensible
+        const { password_hash, salt, ...userStats } = user;
+        
+        return {
+            ...userStats,
+            reportCount: Number(userStats.reportCount) || 0,
+            commentCount: Number(userStats.commentCount) || 0,
+            likeCount: Number(userStats.likeCount) || 0,
+        };
+    }   
+
     // --- UPDATES ---
 
     async updateUserById(id: number, updateUserDto: UpdateUserDto): Promise<UserDto> {
@@ -79,12 +97,25 @@ export class UserService {
         if (!user) {
             throw new NotFoundException("Usuario no encontrado");
         }
+        
+        // Validar si el email ya está en uso por otro usuario
+        if (updateUserDto.email !== undefined && updateUserDto.email !== user.email) {
+            const existingUser = await this.userRepository.findByEmail(updateUserDto.email);
+            if (existingUser && existingUser.id !== id) {
+                throw new BadRequestException("El email ya está en uso por otro usuario");
+            }
+            user.email = updateUserDto.email;
+        }
+        
         if (updateUserDto.name !== undefined) {
             user.name = updateUserDto.name;
         }
         if (updateUserDto.password !== undefined) {
-            user.password_hash = sha256(updateUserDto.password);
+            const salt = generateSalt();
+            user.salt = salt;
+            user.password_hash = sha256(updateUserDto.password + salt);
         }
+        
         await this.userRepository.updateUser(user);
         
         return { email: user.email, name: user.name };
