@@ -194,6 +194,11 @@ export class ReportRepository {
         return result[0] || null;
     }
 
+    async checkUserVoteOnReport(reportId: number, userId: number): Promise<boolean> {
+        const vote = await this.findUserVoteOnReport(reportId, userId);
+        return vote !== null;
+    }
+
     // --- PUTS ---
 
     async updateReportStatus(id: number, statusId: number): Promise<void> {

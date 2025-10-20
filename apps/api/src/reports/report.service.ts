@@ -1,7 +1,7 @@
 // ReportService (dynamic search)
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Report, ReportRepository, ReportWithStatus } from "./report.repository";
-import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto } from "./dto/report.dto";
+import { ReportDto, CreateReportDto, UpdateReportDto, ReportStatusDto, TagDto, VoteResponseDto } from "./dto/report.dto";
 import { CommentService } from "src/comments/comment.service";
 import { NotificationService } from '../notifications/notification.service'; // ← Agregar
 
@@ -176,7 +176,7 @@ export class ReportService {
 
     // --- VOTING ---
 
-    async voteReport(reportId: number, userId: number): Promise<ReportDto> {
+    async voteReport(reportId: number, userId: number): Promise<VoteResponseDto> {
         if (!reportId || reportId <= 0) {
             throw new BadRequestException("ID de reporte inválido");
         }
@@ -195,8 +195,14 @@ export class ReportService {
         } else {
             await this.reportRepository.addUserVoteOnReport(reportId, userId);
         }        
+        
         const updatedReport = await this.reportRepository.findById(reportId);
-        return this.mapReportToDto(updatedReport);
+        const hasVoted = !existingVote; // Si existía el voto, ahora no lo tiene; si no existía, ahora lo tiene
+        
+        return {
+            voteCount: updatedReport.vote_count,
+            hasVoted: hasVoted
+        };
     }
 
     // --- DELETES ---
