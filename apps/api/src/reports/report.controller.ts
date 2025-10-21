@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req, UseGuards, Get, Put, Param, Delete, Query,
 import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "../common/interfaces/authenticated-request";
-import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto} from "./dto/report.dto";
+import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto, VoteResponseDto} from "./dto/report.dto";
 import { CommentDto } from "../comments/dto/comment.dto";
 import { ReportService } from "./report.service";
 import { NotificationService } from "../notifications/notification.service";
@@ -55,6 +55,7 @@ export class ReportController {
     @Query("categoryId") categoryIdRaw?: string,
     @Query("url") url?: string,
     @Query("sort") sort?: "popular" | "recent",
+    @Query("include") include?: string[], // ← NUEVO: leer include de la query
     @Query("page") pageRaw?: string,
     @Query("limit") limitRaw?: string
   ): Promise<ReportDto[] | ReportDto> {
@@ -79,6 +80,7 @@ export class ReportController {
       categoryId,
       url,
       sort,
+      include, // ← NUEVO: pasar include al servicio
       page,
       limit,
     });
@@ -115,7 +117,8 @@ export class ReportController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Votar en un reporte" })
-  async voteReport(@Param("id") id: string, @Req() req: AuthenticatedRequest): Promise<ReportDto> {
+  @ApiResponse({ status: 200, description: "Voto procesado exitosamente", type: VoteResponseDto })
+  async voteReport(@Param("id") id: string, @Req() req: AuthenticatedRequest): Promise<VoteResponseDto> {
     const userId = Number(req.user.profile.id);
     return this.reportService.voteReport(Number(id), userId);
   }

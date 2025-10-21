@@ -47,6 +47,8 @@ export class ReportDto {
     @ApiProperty({ example: "En espera de revisión", description: "Descripción del status", required: false })
     statusDescription?: string;
 
+    @ApiProperty({ example: "Phishing", description: "Nombre de la categoría", required: false })
+    categoryName?: string;
     @ApiProperty({ example: "https://example.com/image.jpg", description: "URL de la imagen", required: false })
     imageUrl?: string;
 
@@ -55,6 +57,9 @@ export class ReportDto {
 
     @ApiProperty({ example: 3, description: "Cantidad de comentarios" })
     commentCount: number;
+
+    @ApiProperty({ example: true, description: "Indica si el usuario actual ha votado este reporte", required: false })
+    hasVoted?: boolean;
 
     @ApiProperty({ example: "2023-01-01T00:00:00Z", description: "Fecha de creación" })
     createdAt: Date;
@@ -132,5 +137,13 @@ export class ReportStatusDto {
 
     @ApiProperty({ example: "En espera de revisión", description: "Descripción del status", required: false })
     description?: string;
+}
+
+export class VoteResponseDto {
+    @ApiProperty({ example: 5, description: "Nuevo conteo de votos" })
+    voteCount: number;
+
+    @ApiProperty({ example: true, description: "Estado de votación del usuario" })
+    hasVoted: boolean;
 }
 
