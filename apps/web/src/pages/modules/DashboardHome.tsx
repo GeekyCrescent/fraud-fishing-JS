@@ -33,8 +33,8 @@ export default function DashboardHome() {
           axios.get("http://localhost:3000/admin/user/stats").then((res) => res.data),
           axios.get("http://localhost:3000/categories").then((res) => res.data),
           axios.get("http://localhost:3000/reports").then((res) => res.data),
-          axios.get("http://localhost:3000/report-validations", {validateStatus: () => true,})
-          .then(res => res.data)
+          axios.get("http://localhost:3000/report-validations", {validateStatus: () => true,}).then(res => res.data)
+
         ]);
 
         const users = usersRes?.users ?? [];
