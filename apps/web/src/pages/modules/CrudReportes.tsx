@@ -1,7 +1,6 @@
 // CrudReportes.tsx — estilo replicado desde CrudUsuarios
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
 import {
   FiTrash2,
   FiEye,
@@ -9,6 +8,8 @@ import {
   FiSearch,
   FiFlag,
 } from "react-icons/fi";
+import { axiosInstance } from "../../network/axiosInstance";
+
 
 interface Tag {
   id: number;
@@ -68,7 +69,7 @@ export default function CrudReportes() {
   const fetchReportes = async () => {
     setError("");
     try {
-      const res = await axios.get(`${API}/reports?status=3`);
+      const res = await axiosInstance.get(`${API}/reports?status=3`);
       const data: Report[] = res.data;
       setReportes(data ?? []);
       setPage(1);
@@ -80,7 +81,7 @@ export default function CrudReportes() {
   // ===== Obtener tags
   const fetchReportTags = async (reportId: number): Promise<Tag[]> => {
     try {
-      const res = await axios.get(`${API}/reports/${reportId}/tags`);
+      const res = await axiosInstance.get(`${API}/reports/${reportId}/tags`);
       console.log("Tags del reporte cargados");
       console.log(res);
       const tags: Tag[] = res.data;
@@ -94,7 +95,7 @@ export default function CrudReportes() {
   // ===== Obtener categoría
   const fetchReportCategory = async (reportId: number): Promise<string> => {
     try {
-      const res = await axios.get(`${API}/reports/${reportId}/category`);
+      const res = await axiosInstance.get(`${API}/reports/${reportId}/category`);
       const response: { categoryName: string } = res.data;
       console.log(res);
       return response.categoryName;
@@ -106,7 +107,7 @@ export default function CrudReportes() {
 
   const fetchUserDetails = async (userId: number) => {
     try {
-      const res = await axios.get(`${API}/admin/user/stats`, {
+      const res = await axiosInstance.get(`${API}/admin/user/stats`, {
         headers: { ...authHeaders(), "Content-Type": "application/json" },
       });
       const data = res.data;
@@ -205,7 +206,7 @@ export default function CrudReportes() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este reporte?")) return;
     try {
-      await axios.delete(`${API}/reports/${id}`, {
+      await axiosInstance.delete(`${API}/reports/${id}`, {
         headers: { ...authHeaders() },
       });
       setReportes((curr) => curr.filter((r) => r.id !== id));
@@ -219,7 +220,7 @@ export default function CrudReportes() {
   const fetchSiblings = async (url: string) => {
     setSiblings(null);
     try {
-      const res = await axios.get(`${API}/reports?url=${encodeURIComponent(url)}`);
+      const res = await axiosInstance.get(`${API}/reports?url=${encodeURIComponent(url)}`);
       const data: Sibling[] = res.data;
       setSiblings(data ?? []);
     } catch {
