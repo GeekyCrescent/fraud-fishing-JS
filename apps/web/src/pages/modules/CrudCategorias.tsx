@@ -1,5 +1,4 @@
 import { useEffect, useRef, useMemo, useState } from "react";
-import axios from "axios";
 import {
   FiPlus,
   FiTrash2,
@@ -7,6 +6,7 @@ import {
   FiMoreHorizontal,
   FiSearch,
 } from "react-icons/fi";
+import { axiosInstance } from "../../network/axiosInstance";
 
 interface Categoria {
   id: number;
@@ -32,7 +32,7 @@ export default function CrudCategorias() {
 
   // Carga de categorías
   useEffect(() => {
-    axios.get("http://localhost:3000/categories")
+    axiosInstance.get("http://localhost:3000/categories")
       .then((res) => {
         setCategorias(res.data ?? []);
         setPage(1);
@@ -40,7 +40,7 @@ export default function CrudCategorias() {
       .catch(() => setError("No se pudieron cargar las categorías"));
 
     // Cargar las 3 categorías más usadas
-    axios.get("http://localhost:3000/categories/top/3")
+    axiosInstance.get("http://localhost:3000/categories/top/3")
       .then((res) => {
         if (res.data && res.data.length > 0) {
           setTopCategorias(res.data);
@@ -109,7 +109,7 @@ export default function CrudCategorias() {
     e.preventDefault();
     setError("");
     try {
-      const res = await axios.post("http://localhost:3000/categories", nueva, {
+      const res = await axiosInstance.post("http://localhost:3000/categories", nueva, {
         headers: { "Content-Type": "application/json" },
       });
       const creada: Categoria = res.data;
@@ -124,7 +124,7 @@ export default function CrudCategorias() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar esta categoría?")) return;
     try {
-      await axios.delete(`http://localhost:3000/categories/${id}`);
+      await axiosInstance.delete(`http://localhost:3000/categories/${id}`);
       setCategorias((curr) => curr.filter((c) => c.id !== id));
       if (detalle?.id === id) setDetalle(null);
     } catch {
@@ -136,7 +136,7 @@ export default function CrudCategorias() {
     e.preventDefault();
     if (!editando) return;
     try {
-      const res = await axios.put(`http://localhost:3000/categories/${editando.id}`, editando, {
+      const res = await axiosInstance.put(`http://localhost:3000/categories/${editando.id}`, editando, {
         headers: { "Content-Type": "application/json" },
       });
       const actualizada = res.data;

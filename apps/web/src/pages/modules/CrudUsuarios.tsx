@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
 import {
   FiPlus,
   FiTrash2,
@@ -7,6 +6,8 @@ import {
   FiMoreHorizontal,
   FiSearch,
 } from "react-icons/fi";
+import { axiosInstance } from "../../network/axiosInstance";
+
 
 interface UsuarioStats {
   id: number;
@@ -45,7 +46,7 @@ export default function CrudUsuarios() {
 
   // Carga desde /admin/user/stats -> { users: [...] } - SOLO usuarios normales
   useEffect(() => {
-    axios.get("http://localhost:3000/admin/user/stats", {
+    axiosInstance.get("http://localhost:3000/admin/user/stats", {
       headers: authHeaders(),
     })
       .then((res) => {
@@ -138,12 +139,12 @@ export default function CrudUsuarios() {
         is_super_admin: false // Nunca super admin desde usuarios normales
       };
 
-      await axios.post("http://localhost:3000/users", userData, {
+      await axiosInstance.post("http://localhost:3000/users", userData, {
         headers: authHeaders(),
       });
       
       // Recargar solo usuarios normales
-      const ref = await axios.get("http://localhost:3000/admin/user/stats", {
+      const ref = await axiosInstance.get("http://localhost:3000/admin/user/stats", {
         headers: authHeaders(),
       });
       const data = ref.data;
@@ -162,7 +163,7 @@ export default function CrudUsuarios() {
   const handleEliminar = async (id: number) => {
     if (!window.confirm("¿Eliminar este usuario?")) return;
     try {
-      await axios.delete(`http://localhost:3000/admin/user/${id}`, {
+      await axiosInstance.delete(`http://localhost:3000/admin/user/${id}`, {
         headers: { Authorization: "Bearer <TOKEN_ADMIN>" },
       });
       setUsuarios((curr) => curr.filter((u) => u.id !== id));
