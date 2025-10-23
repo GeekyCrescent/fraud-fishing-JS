@@ -30,10 +30,26 @@ export default function DashboardHome() {
     const fetchAll = async () => {
       try {
         const [usersRes, catsRes, reportsRes, valRes] = await Promise.all([
-          axios.get("http://localhost:3000/admin/user/stats").then((res) => res.data),
-          axios.get("http://localhost:3000/categories").then((res) => res.data),
-          axios.get("http://localhost:3000/reports").then((res) => res.data),
-          axios.get("http://localhost:3000/report-validations").then((res) => res.data),
+        axios.get("http://localhost:3000/admin/user/stats", {
+          withCredentials: false,       // como fetch: sin cookies
+          validateStatus: () => true,   // como fetch: no lanza error en 404 o 401
+        }).then(res => res.data),
+
+        axios.get("http://localhost:3000/categories", {
+          withCredentials: false,
+          validateStatus: () => true,
+        }).then(res => res.data),
+
+        axios.get("http://localhost:3000/reports", {
+          withCredentials: false,
+          validateStatus: () => true,
+        }).then(res => res.data),
+
+        axios.get("http://localhost:3000/report-validations", {
+          withCredentials: false,
+          validateStatus: () => true,
+        }).then(res => res.data),
+
         ]);
 
         const users = usersRes?.users ?? [];

@@ -11,14 +11,20 @@ export class CommentService {
 
     async createComment(createCommentDto: CreateCommentDto, userId: number): Promise<CommentDto> {
         const { reportId, title, content } = createCommentDto;
-        await this.commentRepository.createComment(reportId, userId, title, content);
+        
+        // Validar que el reporte existe ANTES de crear el comentario
         const report = await this.reportRepository.findById(reportId);
         if (!report) {
             throw new NotFoundException("Reporte no encontrado");
         }
-        if (report.status_id !== 3) {
-            throw new BadRequestException("No se pueden agregar comentarios a un reporte que no está en estado 'Aceptado'");
+        
+        // Validar que el reporte está en estado correcto ANTES de crear el comentario
+        if (report.status_id !== 2 && report.status_id !== 3) {
+            throw new BadRequestException("No se pueden agregar comentarios a un reporte que no está verificado o aceptado");
         }
+        
+        // Crear el comentario solo después de las validaciones
+        await this.commentRepository.createComment(reportId, userId, title, content);
         await this.reportRepository.incrementCommentCount(reportId);
         
         const newComment = await this.commentRepository.findLatestCommentByUserAndReport(userId, reportId);
