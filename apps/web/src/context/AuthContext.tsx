@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
+    const res = await axios.post(`${API_BASE}/auth/login`, { email, password }, { withCredentials: true });
     if (res.status < 200 || res.status >= 300) throw new Error("Login failed");
 
     // Tu endpoint devuelve { accessToken, refreshToken, user } :contentReference[oaicite:6]{index=6}
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const tryRefreshToken = useCallback(async (): Promise<boolean> => {
     if (!refreshToken) return false;
     try {
-      const { data, status } = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken });
+      const { data, status } = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken }, { withCredentials: true });
       if (status === 200 && data?.accessToken) {
         setTokens({ accessToken: data.accessToken, refreshToken: refreshToken });
         return true;

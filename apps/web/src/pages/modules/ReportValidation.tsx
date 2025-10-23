@@ -276,7 +276,7 @@ export default function CrudValidacionReportes() {
             }`}
             onClick={() => setActiveTab("sin_empezar")}
           >
-            Sin empezar (status 1) {/* Mostrar count en el tab */}
+            Pendiente {/* Mostrar count en el tab */}
             <span className="ml-2 inline-flex px-2 py-1 text-xs font-bold rounded-full bg-teal-100 text-teal-800">
               {totalSinEmpezar}
             </span>
@@ -289,7 +289,7 @@ export default function CrudValidacionReportes() {
             }`}
             onClick={() => setActiveTab("en_progreso")}
           >
-            En progreso (status 2) {/* Mostrar count en el tab */}
+            En revisión{/* Mostrar count en el tab */}
             <span className="ml-2 inline-flex px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
               {totalEnProgreso}
             </span>

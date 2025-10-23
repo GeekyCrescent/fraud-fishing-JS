@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import axios from "axios";
+import { axiosInstance } from "../../network/axiosInstance";
+
 import {
   FiUsers,
   FiClipboard,
@@ -29,38 +30,50 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [usersRes, catsRes, reportsRes, valRes] = await Promise.all([
-        axios.get("http://localhost:3000/admin/user/stats", {
-          withCredentials: false,       // como fetch: sin cookies
-          validateStatus: () => true,   // como fetch: no lanza error en 404 o 401
-        }).then(res => res.data),
+        // Manejar cada llamada individualmente para mejor control de errores
+        let usersRes, catsRes, reportsRes, valRes;
+        
+        try {
+          usersRes = await axiosInstance.get("/admin/user/stats", {
+            headers: { 'Accept': 'application/json, text/plain, */*' }
+          });
+        } catch (e) {
+          console.error("Error en /admin/user/stats:", e);
+          usersRes = { data: { users: [] } };
+        }
+        
+        try {
+          catsRes = await axiosInstance.get("/categories");
+        } catch (e) {
+          console.error("Error en /categories:", e);
+          catsRes = { data: [] };
+        }
+        
+        try {
+          reportsRes = await axiosInstance.get("/reports");
+        } catch (e) {
+          console.error("Error en /reports:", e);
+          reportsRes = { data: [] };
+        }
+        
+        try {
+          valRes = await axiosInstance.get("/report-validations", {
+            headers: { 'Accept': 'application/json, text/plain, */*' }
+          });
+        } catch (e) {
+          console.error("Error en /report-validations:", e);
+          valRes = { data: [] };
+        }
 
-        axios.get("http://localhost:3000/categories", {
-          withCredentials: false,
-          validateStatus: () => true,
-        }).then(res => res.data),
-
-        axios.get("http://localhost:3000/reports", {
-          withCredentials: false,
-          validateStatus: () => true,
-        }).then(res => res.data),
-
-        axios.get("http://localhost:3000/report-validations", {
-          withCredentials: false,
-          validateStatus: () => true,
-        }).then(res => res.data),
-
-        ]);
-
-        const users = usersRes?.users ?? [];
+        const users = usersRes?.data?.users ?? [];
         const admins = users.filter((u: any) => u.is_admin).length;
         const usuarios = users.length - admins;
-        const categorias = catsRes?.length ?? 0;
-        const reportes = reportsRes?.length ?? 0;
-        const validaciones = valRes?.length ?? 0;
-        const recientes = reportsRes.slice(0, 5);
+        const categorias = catsRes?.data?.length ?? 0;
+        const reportes = reportsRes?.data?.length ?? 0;
+        const validaciones = valRes?.data?.length ?? 0;
+        const recientes = reportsRes?.data?.slice(0, 5) ?? [];
         const ultimosUsuarios = users.slice(-5).reverse();
-        const topCategorias = catsRes.slice(0, 5);
+        const topCategorias = catsRes?.data?.slice(0, 5) ?? [];
 
         // ===== Calcular datos mensuales reales =====
         const meses = [
@@ -85,7 +98,7 @@ export default function DashboardHome() {
         });
         
         // Contar reportes creados por mes (detecta automáticamente el campo de fecha)
-        reportsRes.forEach((r: any) => {
+        reportsRes?.data?.forEach((r: any) => {
           const fechaCampo =
             r.created_at ||
             r.createdAt ||
@@ -122,7 +135,8 @@ export default function DashboardHome() {
           topCategorias,
           barData,
         });
-      } catch {
+      } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error);
         setError("No se pudieron cargar los datos del dashboard.");
       }
     };
