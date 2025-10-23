@@ -16,6 +16,21 @@ function addPendingRequest(cb: (token: string) => void, reject: (e: any) => void
 
 export const axiosInstance = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
+  // Configuración para aceptar respuestas no-JSON
+  transformResponse: [
+    (data) => {
+      // Intentar parsear como JSON, si falla devolver el texto original
+      if (typeof data === 'string') {
+        try {
+          return JSON.parse(data);
+        } catch (e) {
+          return data;
+        }
+      }
+      return data;
+    }
+  ],
 });
 
 axiosInstance.interceptors.request.use((config) => {
@@ -52,8 +67,8 @@ axiosInstance.interceptors.response.use(
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) throw new Error("No refresh token");
 
-      // Tu backend regresa SOLO accessToken nuevo (status 200) :contentReference[oaicite:4]{index=4}
-      const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken });
+      // Tu backend regresa SOLO accessToken nuevo (status 200)
+      const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken }, { withCredentials: true });
 
       const newAccess = data.accessToken as string;
       localStorage.setItem("accessToken", newAccess);

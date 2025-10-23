@@ -162,7 +162,7 @@ export default function Dashboard() {
         <div className="p-4 border-t border-white/30">
           <button
             onClick={handleLogout}
-            className="w-full py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded"
+            className="w-full py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded cursor-pointer "
           >
             Cerrar sesión
           </button>
