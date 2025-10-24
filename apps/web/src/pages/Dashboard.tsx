@@ -94,7 +94,7 @@ export default function Dashboard() {
               }`
             }
           >
-            <Cog6ToothIcon className="w-5 h-5 text-teal-600" />
+            <DocumentTextIcon className="w-5 h-5 text-teal-600" />
             Reportes
           </NavLink>
 
