@@ -193,49 +193,51 @@ export default function CrudAdmins() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 text-gray-900 py-4 sm:py-8 px-2 sm:px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-          <h2 className="text-[22px] font-semibold tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
+          <h2 className="text-xl sm:text-[22px] font-semibold tracking-tight">
             Administradores
           </h2>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar por nombre o email..."
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
-                className="pl-10 pr-4 py-2 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
+                className="pl-10 pr-4 py-2 w-full sm:w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
-            <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
-              onClick={() => {
-                setShowForm(true)
-                setTipoNuevo("admin");
-              }}
-            >
-              <FiPlus className="text-[18px]" />
-              Agregar admin
-            </button>
-            <button
-              className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
-              onClick={() => {
-                setShowForm(true)
-                setTipoNuevo("super_admin");
-              }}
-            >
-              <FiPlus className="text-[18px]" />
-              Agregar super admin
-            </button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                onClick={() => {
+                  setShowForm(true)
+                  setTipoNuevo("admin");
+                }}
+              >
+                <FiPlus className="text-[18px]" />
+                Agregar admin
+              </button>
+              <button
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+                onClick={() => {
+                  setShowForm(true)
+                  setTipoNuevo("super_admin");
+                }}
+              >
+                <FiPlus className="text-[18px]" />
+                Agregar super admin
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Tarjetas KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <KpiCard
             title="Administradores totales"
             value={total}
@@ -265,7 +267,7 @@ export default function CrudAdmins() {
         )}
 
         {/* Tabla simplificada - Solo Nombre, Email, Rol, Creado */}
-        <div className="w-full text-sm text-left text-gray-600">
+        <div className="w-full text-sm text-left text-gray-600 overflow-x-auto">
           <table className="w-full min-w-[860px]">
             <thead>
               <tr className="text-gray-600">
@@ -300,7 +302,7 @@ export default function CrudAdmins() {
           </table>
 
           {/* Footer paginación */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 bg-white">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 px-2 sm:px-4 py-3 bg-white">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select

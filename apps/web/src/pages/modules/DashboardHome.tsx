@@ -31,7 +31,7 @@ export default function DashboardHome() {
     const fetchAll = async () => {
       try {
         // Manejar cada llamada individualmente para mejor control de errores
-        let usersRes, catsRes, reportsRes, valRes;
+        let usersRes, catsRes, reportsRes;
         
         try {
           usersRes = await axiosInstance.get("/admin/user/stats", {
@@ -55,22 +55,12 @@ export default function DashboardHome() {
           console.error("Error en /reports:", e);
           reportsRes = { data: [] };
         }
-        
-        try {
-          valRes = await axiosInstance.get("/report-validations", {
-            headers: { 'Accept': 'application/json, text/plain, */*' }
-          });
-        } catch (e) {
-          console.error("Error en /report-validations:", e);
-          valRes = { data: [] };
-        }
 
         const users = usersRes?.data?.users ?? [];
         const admins = users.filter((u: any) => u.is_admin).length;
         const usuarios = users.length - admins;
         const categorias = catsRes?.data?.length ?? 0;
         const reportes = reportsRes?.data?.length ?? 0;
-        const validaciones = valRes?.data?.length ?? 0;
         const recientes = reportsRes?.data?.slice(0, 5) ?? [];
         const ultimosUsuarios = users.slice(-5).reverse();
         const topCategorias = catsRes?.data?.slice(0, 5) ?? [];
@@ -129,7 +119,6 @@ export default function DashboardHome() {
           admins,
           categorias,
           reportes,
-          validaciones,
           recientes,
           ultimosUsuarios,
           topCategorias,
@@ -152,19 +141,18 @@ export default function DashboardHome() {
       { name: "Admins", value: data.admins },
       { name: "Categorías", value: data.categorias },
       { name: "Reportes", value: data.reportes },
-      { name: "Validaciones", value: data.validaciones },
     ];
   }, [data]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-50 text-gray-900 py-4 px-2 sm:py-8 sm:px-4">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-          <h1 className="text-3xl font-bold tracking-tight text-[#00204D]">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#00204D]">
             Dashboard general
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs sm:text-sm">
             Resumen ejecutivo de la plataforma Fraud Fishing
           </p>
         </header>
@@ -180,26 +168,25 @@ export default function DashboardHome() {
         ) : (
           <>
             {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard icon={<FiUsers />} title="Usuarios" value={data.usuarios} />
               <KpiCard icon={<FiShield />} title="Admins" value={data.admins} />
               <KpiCard icon={<FiTag />} title="Categorías" value={data.categorias} />
               <KpiCard icon={<FiClipboard />} title="Reportes" value={data.reportes} />
-              <KpiCard icon={<FiCheckCircle />} title="Validaciones" value={data.validaciones} />
             </div>
 
             {/* Gráficos */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Pie */}
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">Distribución general</h2>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Distribución general</h2>
+                <ResponsiveContainer width="100%" height={250} className="text-xs sm:text-sm">
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
+                      outerRadius={80}
                       label={(entry: any) =>
                         `${entry.name}: ${(Number(entry.percent ?? 0) * 100).toFixed(0)}%`
                       }
@@ -215,11 +202,11 @@ export default function DashboardHome() {
               </div>
 
               {/* Barras con datos reales */}
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  Actividad mensual (Usuarios / Reportes)
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-6">
+                <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+                  Actividad mensual
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250} className="text-xs sm:text-sm">
                   <BarChart data={data.barData}>
                     <XAxis dataKey="name" />
                     <YAxis />
@@ -233,24 +220,24 @@ export default function DashboardHome() {
             </section>
 
             {/* Línea de crecimiento real */}
-            <section className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">
-                Crecimiento y tendencia real
+            <section className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+                Crecimiento y tendencia
               </h2>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250} className="text-xs sm:text-sm">
                 <LineChart data={data.barData}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="usuarios" stroke="#3B82F6" strokeWidth={3} />
-                  <Line type="monotone" dataKey="reportes" stroke="#14B8A6" strokeWidth={3} />
+                  <Line type="monotone" dataKey="usuarios" stroke="#3B82F6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="reportes" stroke="#14B8A6" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </section>
 
             {/* Actividad reciente */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <RecentBox title="Últimos reportes" headers={["URL", "Estado"]}
                 data={data.recientes.map((r: any) => [r.url, r.status ?? "Pendiente"])} />
               <RecentBox title="Usuarios recientes" headers={["Nombre", "Email"]}
@@ -265,7 +252,6 @@ export default function DashboardHome() {
   );
 }
 
-/* ====== KpiCard ====== */
 function KpiCard({
   icon,
   title,
@@ -276,12 +262,12 @@ function KpiCard({
   value: number | string;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition-transform hover:scale-105">
+    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 flex items-center justify-between hover:shadow-md transition-transform hover:scale-105">
       <div>
-        <div className="text-sm text-gray-500">{title}</div>
-        <div className="text-3xl font-semibold text-teal-600">{value}</div>
+        <div className="text-xs sm:text-sm text-gray-500">{title}</div>
+        <div className="text-xl sm:text-3xl font-semibold text-teal-600">{value}</div>
       </div>
-      <div className="text-teal-500 text-3xl opacity-70">{icon}</div>
+      <div className="text-teal-500 text-2xl sm:text-3xl opacity-70">{icon}</div>
     </div>
   );
 }
@@ -297,26 +283,54 @@ function RecentBox({
   data: (string | number)[][];
 }) {
   return (
-    <div className="bg-white  rounded-2xl shadow-sm p-6">
-      <h2 className="text-lg font-semibold mb-4">{title}</h2>
-      <table className="w-full text-sm">
-        <thead className="text-gray-600 border-b">
-          <tr>
-            {headers.map((h, i) => (
-              <th key={i} className="border-b border-gray-200 text-left py-2">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, i) => (
-            <tr key={i} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition">
-              {row.map((cell, j) => (
-                <td key={j} className="py-2">{cell}</td>
+    <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">{title}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs sm:text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              {headers.map((h, i) => (
+                <th key={i} className="text-left py-2 font-medium text-gray-600">
+                  {h}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="py-3 text-center text-gray-400"
+                >
+                  No hay datos disponibles
+                </td>
+              </tr>
+            ) : (
+              data.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td key={j} className="py-2 truncate max-w-[150px]">
+                      {typeof cell === "string" && cell.startsWith("http") ? (
+                        <a
+                          href={cell}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-teal-600 hover:underline"
+                        >
+                          {cell.replace(/^https?:\/\//, "")}
+                        </a>
+                      ) : (
+                        cell
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
