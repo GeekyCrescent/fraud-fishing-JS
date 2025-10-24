@@ -173,26 +173,26 @@ export default function CrudUsuarios() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 text-gray-900 py-4 sm:py-8 px-2 sm:px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-          <h2 className="text-[22px] font-semibold tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
+          <h2 className="text-xl sm:text-[22px] font-semibold tracking-tight">
             Usuarios
           </h2>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar por nombre o email..."
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
-                className="pl-10 pr-4 py-2 w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
+                className="pl-10 pr-4 py-2 w-full sm:w-72 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
             <button
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg shadow-sm cursor-pointer w-full sm:w-auto"
               onClick={() => {
               setShowForm(true)
               setTipoNuevo("usuario");
@@ -205,7 +205,7 @@ export default function CrudUsuarios() {
         </div>
 
         {/* Tarjetas KPI - Actualizadas para usuarios normales */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <KpiCard
             title="Usuarios normales"
             value={total}
@@ -235,7 +235,7 @@ export default function CrudUsuarios() {
         )}
 
         {/* Tabla */}
-        <div className="w-full text-sm text-left text-gray-600">
+        <div className="w-full text-sm text-left text-gray-600 overflow-x-auto">
           <table className="w-full min-w-[860px]">
             <thead>
               <tr className="text-gray-600">
@@ -271,7 +271,7 @@ export default function CrudUsuarios() {
           </table>
 
           {/* Footer paginación */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 bg-white">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 px-2 sm:px-4 py-3 bg-white">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Filas por página</span>
               <select
@@ -301,10 +301,10 @@ export default function CrudUsuarios() {
 
         {/* Modal crear */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
             <form
               onSubmit={handleCrear}
-              className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md"
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-lg w-full max-w-md"
             >
               <h3 className="text-lg font-semibold mb-4">{tipoNuevo === "usuario" ? "Agregar usuario" : "Agregar administrador"}</h3>
               <input
@@ -344,23 +344,23 @@ export default function CrudUsuarios() {
 
         {/* Modal detalle */}
         {detalle && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg w-full max-w-md">
               <h3 className="text-lg font-bold">{detalle.name}</h3>
               <p className="text-gray-700 py-3">{detalle.email}</p>
 
-              <div className="grid grid-cols-3 gap-3 mb-4 text-center">
-                <div className="rounded-lg border p-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 text-center">
+                <div className="rounded-lg border p-2 sm:p-3">
                   <div className="text-xs text-gray-500">Reports</div>
-                  <div className="text-xl font-semibold">{detalle.reportCount}</div>
+                  <div className="text-lg sm:text-xl font-semibold">{detalle.reportCount}</div>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-2 sm:p-3">
                   <div className="text-xs text-gray-500">Comments</div>
-                  <div className="text-xl font-semibold">{detalle.commentCount}</div>
+                  <div className="text-lg sm:text-xl font-semibold">{detalle.commentCount}</div>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-2 sm:p-3">
                   <div className="text-xs text-gray-500">Likes</div>
-                  <div className="text-xl font-semibold">{detalle.likeCount}</div>
+                  <div className="text-lg sm:text-xl font-semibold">{detalle.likeCount}</div>
                 </div>
               </div>
 
